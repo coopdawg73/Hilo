@@ -67,7 +67,11 @@
     .hero h1 { margin:0; max-width:720px; font-size:clamp(64px,7vw,112px); }
     .hero h1 span { color:var(--lime); text-shadow:0 0 34px rgba(200,255,61,.23); }
     .hero-copy { max-width:610px; margin:32px 0 0; color:var(--muted); font-size:18px; line-height:1.65; }
+    .setup-side { min-width:0; display:grid; gap:16px; }
     .setup-card { border-radius:36px; padding:35px; }
+    .mode-switch { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:28px; padding:5px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(3,2,8,.42); }
+    .mode-switch button { min-height:48px; border:0; border-radius:13px; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+    .mode-switch button.selected { background:linear-gradient(115deg,var(--lime),#dcff79); color:var(--ink); box-shadow:0 0 24px rgba(200,255,61,.16); }
     .card-title { display:flex; gap:15px; align-items:center; margin-bottom:28px; }
     .step { width:50px; height:50px; border:1px solid rgba(200,255,61,.46); background:rgba(200,255,61,.08); color:var(--lime); border-radius:15px; display:grid; place-items:center; font-family:ui-monospace,monospace; font-weight:850; }
     .card-title p { margin:0 0 3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.15em; font-weight:850; }
@@ -89,6 +93,11 @@
     .primary:hover { transform:translateY(-2px); filter:brightness(1.05); box-shadow:0 10px 38px rgba(200,255,61,.22); }
     .primary:active { transform:scale(.98); }
     .fine { margin:14px 0 0; color:#766e85; text-align:center; font-size:10px; }
+    .solo-facts { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:24px 0 27px; }
+    .solo-fact { min-width:0; padding:13px 7px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(3,2,8,.34); text-align:center; }
+    .solo-fact strong { display:block; color:var(--lime); font-size:19px; line-height:1; }
+    .solo-fact span { display:block; margin-top:5px; color:var(--muted); font-size:8px; font-weight:850; letter-spacing:.1em; text-transform:uppercase; }
+    .public-note { margin:13px 0 0; color:#8d849c; text-align:center; font-size:10px; line-height:1.45; }
     .center-screen { min-height:calc(100svh - 88px); width:min(780px,calc(100% - 40px)); margin:auto; padding:56px 0 72px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
     .turn-orbit { width:112px; height:112px; margin-bottom:30px; position:relative; border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle,rgba(176,76,255,.28),rgba(9,6,17,.7)); border:1px solid rgba(176,76,255,.72); box-shadow:0 0 45px rgba(176,76,255,.22); }
     .turn-orbit::before,.turn-orbit::after { content:""; position:absolute; inset:-12px; border-radius:inherit; border:1px solid rgba(200,255,61,.13); }
@@ -114,6 +123,17 @@
     .score.active { background:rgba(139,92,246,.18); color:var(--white); box-shadow:inset 0 0 0 1px rgba(176,76,255,.34); }
     .score span { max-width:84px; overflow:hidden; text-overflow:ellipsis; font-size:11px; font-weight:850; text-transform:uppercase; letter-spacing:.07em; }
     .score strong { color:var(--lime); font-size:26px; font-variant-numeric:tabular-nums; }
+    .scores.solo .score { min-width:190px; }
+    .solo-meta { display:flex; align-items:center; gap:10px; }
+    .timer { width:132px; min-height:66px; position:relative; overflow:hidden; border:1px solid rgba(200,255,61,.48); border-radius:20px; background:rgba(15,9,26,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 0 26px rgba(200,255,61,.09); }
+    .timer > span { color:var(--muted); font-size:8px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+    .timer strong { margin-top:1px; color:var(--lime); font-size:29px; line-height:1; font-variant-numeric:tabular-nums; }
+    .timer strong small { font-size:12px; }
+    .timer-track { position:absolute; left:0; right:0; bottom:0; height:4px; background:rgba(255,255,255,.08); }
+    .timer-track i { display:block; height:100%; width:100%; background:var(--lime); transform-origin:left; }
+    .timer.urgent { border-color:var(--danger); box-shadow:0 0 28px rgba(255,87,118,.15); }
+    .timer.urgent strong { color:#ff8ca3; }
+    .timer.urgent .timer-track i { background:var(--danger); }
     .compare { display:grid; grid-template-columns:1fr 78px 1fr; align-items:stretch; }
     .fact { min-height:440px; border-radius:40px; padding:39px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:radial-gradient(circle at 50% 25%,rgba(139,92,246,.13),transparent 38%),linear-gradient(145deg,rgba(25,18,43,.94),rgba(13,9,23,.98)); box-shadow:0 28px 90px rgba(0,0,0,.32); }
     .fact.known { border:1px solid rgba(200,255,61,.82); box-shadow:0 0 28px rgba(200,255,61,.09),0 28px 90px rgba(0,0,0,.32); }
@@ -156,6 +176,32 @@
     .final-player small { color:var(--muted); }
     .result-actions { width:min(650px,100%); display:grid; grid-template-columns:1.25fr 1fr; gap:12px; margin-top:17px; }
     .secondary { min-height:64px; border-radius:20px; }
+    .solo-results { width:min(920px,calc(100% - 40px)); min-height:calc(100svh - 88px); margin:auto; padding:52px 0 72px; display:grid; gap:19px; }
+    .solo-result-card { border-radius:34px; padding:35px; text-align:center; }
+    .solo-result-card .eyebrow { justify-content:center; }
+    .solo-result-card h1 { margin:0; color:var(--lime); font-size:clamp(54px,8vw,92px); }
+    .solo-result-card > p:not(.eyebrow) { max-width:570px; margin:18px auto 0; color:var(--muted); line-height:1.55; }
+    .solo-stats { width:min(620px,100%); margin:29px auto 0; display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .solo-stat { padding:17px 10px; border:1px solid rgba(255,255,255,.1); border-radius:17px; background:rgba(3,2,8,.3); }
+    .solo-stat strong { display:block; color:var(--white); font-size:22px; }
+    .solo-stat span { display:block; margin-top:4px; color:var(--muted); font-size:8px; font-weight:850; letter-spacing:.1em; text-transform:uppercase; }
+    .submission-status { min-height:20px; margin:17px 0 0; color:var(--muted); font-size:11px; }
+    .submission-status.good { color:var(--lime); }
+    .submission-status.warn { color:#ffb0bf; }
+    .solo-actions { width:min(620px,100%); margin:17px auto 0; display:grid; grid-template-columns:1.2fr 1fr; gap:10px; }
+    .leaderboard { border-radius:30px; padding:25px; }
+    .leaderboard-head { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:16px; }
+    .leaderboard-head p { margin:0 0 4px; color:var(--muted); font-size:9px; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+    .leaderboard-head h2 { margin:0; font-size:25px; }
+    .leaderboard-head span { color:var(--muted); font-size:10px; text-align:right; }
+    .leaderboard-list { display:grid; gap:6px; }
+    .leaderboard-row { min-height:45px; display:grid; grid-template-columns:36px minmax(0,1fr) auto; align-items:center; gap:10px; padding:0 13px; border:1px solid rgba(255,255,255,.08); border-radius:13px; background:rgba(3,2,8,.28); }
+    .leaderboard-row.current { border-color:rgba(200,255,61,.55); background:rgba(200,255,61,.07); }
+    .leaderboard-rank { color:var(--muted); font-family:ui-monospace,monospace; font-size:11px; }
+    .leaderboard-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:800; }
+    .leaderboard-score { color:var(--lime); font-size:15px; font-weight:950; font-variant-numeric:tabular-nums; }
+    .leaderboard-empty { padding:22px 10px; color:var(--muted); text-align:center; font-size:12px; }
+    .leaderboard-foot { margin:13px 0 0; color:#766e85; text-align:center; font-size:9px; }
     .backdrop { position:fixed; inset:0; z-index:50; padding:22px; display:grid; place-items:center; background:rgba(3,2,8,.8); backdrop-filter:blur(12px); animation:fade .18s ease both; }
     .modal { width:min(540px,100%); position:relative; border-radius:32px; padding:37px; animation:modal .25s cubic-bezier(.2,.8,.2,1) both; }
     .close { position:absolute; top:16px; right:16px; width:42px; height:42px; border:1px solid rgba(255,255,255,.18); border-radius:50%; background:rgba(255,255,255,.05); color:var(--white); cursor:pointer; font-size:24px; }
@@ -173,6 +219,7 @@
       .setup { grid-template-columns:1fr; gap:44px; padding-top:48px; }
       .hero { text-align:center; } .hero .eyebrow { justify-content:center; } .hero h1,.hero-copy { margin-left:auto; margin-right:auto; }
       .game-head { align-items:stretch; flex-direction:column; } .game-head .eyebrow { justify-content:center; } .scores { align-self:center; }
+      .solo-meta { align-self:center; }
       .compare { grid-template-columns:1fr; grid-template-rows:auto 50px auto; } .vs { width:64px; height:64px; }
       .fact { min-height:382px; }
     }
@@ -182,6 +229,7 @@
       .setup { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:36px 0 46px; }
       .hero h1 { font-size:clamp(50px,16vw,72px); } .hero-copy { margin-top:23px; font-size:15px; }
       .setup-card { border-radius:26px; padding:22px; } .names { grid-template-columns:1fr; } .card-title { margin-bottom:23px; }
+      .mode-switch { margin-bottom:22px; }
       .center-screen { min-height:calc(100svh - 70px); padding:36px 0 48px; }
       .turn-orbit { width:90px; height:90px; } .turn-orbit span { font-size:37px; }
       .center-screen h1 { font-size:clamp(52px,16vw,78px); }
@@ -190,6 +238,7 @@
       .question-banner { margin-bottom:18px; padding:20px 15px 22px; border-radius:22px; }
       .question-banner h1 { margin-top:8px; font-size:clamp(28px,8.8vw,38px); line-height:1.08; }
       .scores { width:100%; } .score { width:50%; min-width:0; min-height:50px; gap:8px; padding:6px 9px; }
+      .solo-meta { width:100%; } .solo-meta .timer { width:42%; min-height:58px; } .solo-meta .scores { width:58%; } .scores.solo .score { width:100%; min-width:0; }
       .score span { max-width:73px; } .score strong { font-size:22px; }
       .fact { min-height:294px; padding:27px 19px; border-radius:28px; } .fact.known { min-height:260px; }
       .fact > p { margin-bottom:12px; } .fact h2 { font-size:39px; } .number { margin-top:20px; font-size:70px; }
@@ -199,6 +248,12 @@
       .progress { margin-top:21px; }
       .final-player { padding:20px 9px; } .final-player h2 { font-size:18px; } .final-player strong { font-size:48px; }
       .result-actions { grid-template-columns:1fr; } .secondary { min-height:54px; }
+      .solo-results { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:30px 0 46px; }
+      .solo-result-card { padding:27px 17px; border-radius:26px; }
+      .solo-result-card h1 { font-size:clamp(48px,15vw,70px); }
+      .solo-stats { grid-template-columns:1fr 1fr 1fr; } .solo-stat { padding:14px 5px; } .solo-stat strong { font-size:18px; }
+      .solo-actions { grid-template-columns:1fr; }
+      .leaderboard { padding:20px 14px; border-radius:24px; } .leaderboard-head { align-items:start; } .leaderboard-head h2 { font-size:21px; }
       .modal { border-radius:26px; padding:29px 19px 21px; } .modal h2 { font-size:40px; }
       .rules-list li { grid-template-columns:72px 1fr; padding:12px; }
     }
@@ -209,6 +264,7 @@
 <body>
   <main id="app"></main>
   <div id="modal-root"></div>
+  <script src="config.js"></script>
   <script>
     const item = (name,phrase,value,display,unit) => ({name,phrase,value,display,unit});
     const fact = (topic,type,a,b) => ({topic,type,items:[a,b]});
@@ -247,9 +303,15 @@
       fact("States vs countries","count",item("United States","the United States",50,"50","states"),item("Africa","Africa",54,"54","countries")),
       fact("Pool vs plane","longer",item("Olympic pool","an Olympic pool",50,"50","meters"),item("Boeing 747-8","a Boeing 747-8",76.3,"76.3","meters"))
     ];
+    const ROUND_MS = 8000;
+    const SOLO_ROUNDS = 10;
+    const LOCAL_SCORES_KEY = "hilo-solo-scores-v1";
+    const CONFIG = window.HILO_CONFIG || {};
     const state = {
-      screen:"setup", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
-      active:0, starter:0, guess:null, correct:null, rules:false
+      screen:"setup", mode:"duo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
+      active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
+      timerId:null, roundPoints:0, answerTimes:[], correctFlags:[], leaderboard:[], leaderboardStatus:"idle",
+      submitStatus:"idle", scoreSubmitted:false, submissionId:null
     };
     const app = document.getElementById("app");
     const modalRoot = document.getElementById("modal-root");
@@ -258,6 +320,11 @@
     const shuffle = list => { const copy=[...list]; for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];} return copy; };
     const makeDeck = () => shuffle(FACTS).slice(0,state.rounds).map(source=>{const order=Math.random()<.5?source.items:[...source.items].reverse();return {...source,known:order[0],target:order[1]};});
     const questionFor = current => { const decorate=(value,kind)=>({...value,phrase:`<strong class="${kind}-word">${esc(value.phrase)}</strong>`,unit:esc(value.unit)}); return QUESTION_TYPES[current.type].ask(decorate(current.target,"target"),decorate(current.known,"known")); };
+    const formatScore = value => Number(value||0).toLocaleString("en-US");
+    const supabaseReady = () => Boolean(CONFIG.supabaseUrl&&CONFIG.supabaseAnonKey&&!String(CONFIG.supabaseUrl).includes("YOUR_PROJECT"));
+    const supabaseBase = () => String(CONFIG.supabaseUrl||"").replace(/\/$/,"");
+    const supabaseHeaders = () => String(CONFIG.supabaseAnonKey).startsWith("sb_publishable_")?{apikey:CONFIG.supabaseAnonKey}:{apikey:CONFIG.supabaseAnonKey,Authorization:`Bearer ${CONFIG.supabaseAnonKey}`};
+    const pointsFor = (elapsed,correct) => correct?Math.max(100,Math.round(1000*(ROUND_MS-Math.min(elapsed,ROUND_MS))/ROUND_MS)):0;
     const buzz = correct => { if(navigator.vibrate) navigator.vibrate(correct?45:[45,45,80]); };
 
     function header(){
@@ -266,29 +333,47 @@
     function shell(content){
       return `<div class="shell"><div class="orb one"></div><div class="orb two"></div>${header()}${content}</div>`;
     }
+    function leaderboardView(){
+      const live=supabaseReady(), loading=state.leaderboardStatus==="loading";
+      const rows=state.leaderboard.map((entry,index)=>`<div class="leaderboard-row ${entry.id&&entry.id===state.submissionId?"current":""}"><span class="leaderboard-rank">${String(index+1).padStart(2,"0")}</span><span class="leaderboard-name">${esc(entry.player_name)}</span><strong class="leaderboard-score">${formatScore(entry.score)}</strong></div>`).join("");
+      const empty=loading?"Loading the fastest minds…":state.leaderboardStatus==="error"?"The leaderboard database still needs its one-time setup.":live?"No ranked runs yet. You could be first.":"Finish a solo run to set the pace on this phone.";
+      const foot=state.leaderboardStatus==="error"?"Showing scores saved on this phone until Supabase setup is complete.":live?"Scores are ranked by points, then total answer time.":"Connect Supabase to turn this into the live global board.";
+      return `<section class="leaderboard panel" aria-labelledby="leaderboard-title"><div class="leaderboard-head"><div><p>${live?"Worldwide rankings":"This-device preview"}</p><h2 id="leaderboard-title">${live?"Global leaderboard":"Leaderboard preview"}</h2></div><span>Top ${Math.max(10,state.leaderboard.length)}<br>10-round runs</span></div><div class="leaderboard-list">${rows||`<div class="leaderboard-empty">${empty}</div>`}</div><p class="leaderboard-foot">${foot}</p></section>`;
+    }
     function setupView(){
+      const solo=state.mode==="solo";
       return shell(`<section class="setup enter" aria-labelledby="setup-title">
-        <div class="hero"><p class="eyebrow"><i></i>Two players · one phone</p><h1 id="setup-title">Trust your gut.<br><span>Then talk trash.</span></h1><p class="hero-copy">Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor.</p></div>
-        <form class="setup-card panel" id="setup-form"><div class="card-title"><span class="step">01</span><div><p>Game setup</p><h2>Who’s playing?</h2></div></div>
-          <div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div>
-          <fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>
-          <button class="primary" type="submit">Start game <b aria-hidden="true">→</b></button><p class="fine">No login. No ads. No funny business.</p>
-        </form></section>`);
+        <div class="hero"><p class="eyebrow"><i></i>${solo?"Solo sprint · global glory":"Two players · one phone"}</p><h1 id="setup-title">${solo?`Eight seconds.<br><span>Make it count.</span>`:`Trust your gut.<br><span>Then talk trash.</span>`}</h1><p class="hero-copy">${solo?"Race through 10 questions. A correct instant answer is worth 1,000 points; hesitate and the clock eats your score.":"Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor."}</p></div>
+        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode"><button type="button" data-mode="duo" class="${solo?"":"selected"}" aria-pressed="${!solo}">Two players</button><button type="button" data-mode="solo" class="${solo?"selected":""}" aria-pressed="${solo}">Solo sprint</button></div><div class="card-title"><span class="step">${solo?"⚡":"01"}</span><div><p>${solo?"Ranked challenge":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
+          ${solo?`<div class="names"><label><span>Leaderboard name</span><input id="player-one" maxlength="14" autocomplete="nickname" value="${esc(state.draftNames[0])}"></label></div><div class="solo-facts"><div class="solo-fact"><strong>10</strong><span>Questions</span></div><div class="solo-fact"><strong>8s</strong><span>Each</span></div><div class="solo-fact"><strong>10K</strong><span>Max score</span></div></div>`:`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div><fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>`}
+          <button class="primary" type="submit">${solo?"Start ranked run":"Start game"} <b aria-hidden="true">→</b></button>${solo?`<p class="public-note">Your display name and final score will appear publicly when the global board is connected.</p>`:`<p class="fine">No login. No ads. No funny business.</p>`}
+        </form>${solo?leaderboardView():""}</div></section>`);
     }
     function handoffView(){
       const player=state.players[state.active]; const other=state.players[state.active?0:1];
+      if(state.mode==="solo") return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>8</span></div><p class="eyebrow"><i></i>10 questions · 8 seconds each</p><h1 id="handoff-title">Ready,<br><strong>${esc(player.name)}?</strong></h1><p>The timer starts the moment you tap. Correct answers begin at 1,000 points and lose value every millisecond.</p><button class="primary center-action" data-action="ready">Start the clock <b aria-hidden="true">→</b></button><small>Accuracy matters. Speed makes legends.</small></section>`);
       return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>${state.round+1}</span></div><p class="eyebrow"><i></i>Round ${state.round+1} of ${state.rounds}</p><h1 id="handoff-title">Pass it to<br><strong>${esc(player.name)}</strong></h1><p>No peeking. Your turn starts when you tap ready.</p><button class="primary center-action" data-action="ready">I’m ready <b aria-hidden="true">→</b></button>${state.round?`<small>${esc(other.name)} just finished their turn.</small>`:""}</section>`);
     }
     function gameView(){
-      const fact=state.deck[state.round], left=fact.known, right=fact.target, choices=QUESTION_TYPES[fact.type], player=state.players[state.active], other=state.players[state.active?0:1];
-      const reveal=state.guess!==null, rightAnswer=right.value>left.value?choices.up:choices.down;
-      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><p class="eyebrow"><i></i>${esc(fact.topic)}</p><div class="scores" aria-label="Scores">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${p.score}</strong></div>`).join("")}</div></div>
-        <div class="question-banner"><span class="question-label">Your question</span><h1 id="game-title">${questionFor(fact)}</h1></div>
+      const solo=state.mode==="solo", fact=state.deck[state.round], left=fact.known, right=fact.target, choices=QUESTION_TYPES[fact.type], player=state.players[state.active], other=solo?null:state.players[state.active?0:1];
+      const reveal=state.guess!==null, rightAnswer=right.value>left.value?choices.up:choices.down, seconds=(state.timeLeft/1000).toFixed(1);
+      const scoreBoard=`<div class="scores ${solo?"solo":""}" aria-label="${solo?"Score":"Scores"}">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${formatScore(p.score)}</strong></div>`).join("")}</div>`;
+      const timer=`<div class="timer ${state.timeLeft<=2500?"urgent":""}" id="round-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${seconds}"><span>${reveal?(state.guess==="timeout"?"Time’s up":"Locked in"):"Time left"}</span><strong><span id="timer-number">${seconds}</span><small>s</small></strong><div class="timer-track"><i id="timer-fill" style="width:${(state.timeLeft/ROUND_MS)*100}%"></i></div></div>`;
+      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><p class="eyebrow"><i></i>${esc(fact.topic)}</p>${solo?`<div class="solo-meta">${timer}${scoreBoard}</div>`:scoreBoard}</div>
+        <div class="question-banner"><span class="question-label">${solo?`Question ${state.round+1} of ${state.rounds}`:"Your question"}</span><h1 id="game-title">${questionFor(fact)}</h1></div>
         <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left.name)}</h2><div class="number lime">${esc(left.display)}</div><span class="unit">${esc(left.unit)}</span></article><div class="vs" aria-hidden="true">VS</div>
-          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.correct?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.correct?"right":"miss"}">${state.correct?"Correct · +1 point":`Answer: ${esc(rightAnswer)}`}</div><button class="next" data-action="next">${state.round+1>=state.rounds?"See final score":`Pass to ${esc(other.name)}`}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
-        <div class="progress" aria-label="Round ${state.round+1} of ${state.rounds}"><div class="track"><i style="width:${((state.round+1)/state.rounds)*100}%"></i></div><p>Round <strong>${state.round+1}</strong> of ${state.rounds} · ${esc(player.name)}’s turn</p></div></section>`);
+          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.guess==="timeout"?"Time’s up":state.correct?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.correct?"right":"miss"}">${solo?(state.correct?`+${formatScore(state.roundPoints)} points`:`Answer: ${esc(rightAnswer)}`):(state.correct?"Correct · +1 point":`Answer: ${esc(rightAnswer)}`)}</div><button class="next" data-action="next">${state.round+1>=state.rounds?(solo?"See leaderboard":"See final score"):(solo?"Next question":`Pass to ${esc(other.name)}`)}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
+        <div class="progress" aria-label="Round ${state.round+1} of ${state.rounds}"><div class="track"><i style="width:${((state.round+1)/state.rounds)*100}%"></i></div><p>Round <strong>${state.round+1}</strong> of ${state.rounds} · ${solo?`${formatScore(player.score)} points`: `${esc(player.name)}’s turn`}</p></div></section>`);
+    }
+    function soloResultsView(){
+      const score=state.players[0].score, correct=state.correctFlags.filter(Boolean).length, totalTime=state.answerTimes.reduce((sum,value)=>sum+value,0), average=state.answerTimes.length?totalTime/state.answerTimes.length:0;
+      const verdict=score>=8500?"Lightning brain. Questionably human.":score>=6500?"Fast, accurate, and now extremely annoying to compete with.":score>=4000?"Solid run. The leaderboard has officially been warned.":"A respectable warm-up. Run it back and trust the first instinct.";
+      const statusText=state.submitStatus==="submitting"?"Submitting your run…":state.submitStatus==="saved"?"Score added to the global leaderboard.":state.submitStatus==="local"?"Score saved on this phone. Connect Supabase to make it global.":state.submitStatus==="error"?"The global board could not be reached; your score was saved on this phone.":"Preparing your result…";
+      const statusClass=state.submitStatus==="saved"?"good":state.submitStatus==="error"?"warn":"";
+      return shell(`<section class="solo-results enter" aria-labelledby="results-title"><div class="solo-result-card panel"><p class="eyebrow"><i></i>Solo sprint complete</p><h1 id="results-title">${formatScore(score)}</h1><p>${verdict}</p><div class="solo-stats"><div class="solo-stat"><strong>${correct}/${state.rounds}</strong><span>Correct</span></div><div class="solo-stat"><strong>${(average/1000).toFixed(1)}s</strong><span>Avg answer</span></div><div class="solo-stat"><strong>${formatScore(state.rounds*1000)}</strong><span>Max score</span></div></div><p class="submission-status ${statusClass}" aria-live="polite">${statusText}</p><div class="solo-actions"><button class="primary" data-action="rematch">Run it again <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change mode</button></div></div>${leaderboardView()}</section>`);
     }
     function resultsView(){
+      if(state.mode==="solo") return soloResultsView();
       const tied=state.players[0].score===state.players[1].score; const winner=tied?null:(state.players[0].score>state.players[1].score?state.players[0]:state.players[1]);
       return shell(`<section class="center-screen results enter" aria-labelledby="results-title"><p class="eyebrow"><i></i>Final score</p><div class="trophy" aria-hidden="true">★</div><h1 id="results-title">${tied?"It’s a tie!":`${esc(winner.name)} wins!`}</h1><p>${tied?"Dead even. There’s only one responsible choice: run it back.":"The numbers have spoken. Bragging rights are now legally binding."}</p>
         <div class="final-scores panel">${state.players.map(p=>{const won=!tied&&p===winner;return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${p.score}</strong><small>points</small></div>`}).join("")}</div>
@@ -296,40 +381,85 @@
     }
     function rulesView(){
       if(!state.rules){modalRoot.innerHTML="";return;}
-      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li><li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li></ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
+      const solo=state.mode==="solo";
+      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li>${solo?`<li><strong>Race</strong><span>You get 8 seconds. Correct answers start at 1,000 points and lose value as time passes.</span></li>`:`<li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li>`}</ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
     }
     function render(){
       app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="playing"?gameView():resultsView();
       rulesView(); bind();
     }
+    function clearRoundTimer(){ if(state.timerId){clearInterval(state.timerId);state.timerId=null;} }
+    function updateTimerDisplay(){
+      const timer=document.getElementById("round-timer"), number=document.getElementById("timer-number"), fill=document.getElementById("timer-fill");
+      if(!timer||!number||!fill)return;
+      const seconds=(state.timeLeft/1000).toFixed(1); number.textContent=seconds; fill.style.width=`${(state.timeLeft/ROUND_MS)*100}%`; timer.setAttribute("aria-valuenow",seconds); timer.classList.toggle("urgent",state.timeLeft<=2500);
+    }
+    function startRoundTimer(){
+      clearRoundTimer(); state.roundStartedAt=performance.now(); state.timeLeft=ROUND_MS; updateTimerDisplay();
+      state.timerId=setInterval(()=>{state.timeLeft=Math.max(0,ROUND_MS-(performance.now()-state.roundStartedAt));updateTimerDisplay();if(state.timeLeft<=0){clearRoundTimer();makeGuess("timeout");}},50);
+    }
+    function beginRound(){ state.screen="playing";state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;render();if(state.mode==="solo")setTimeout(startRoundTimer,0); }
+    function sortScores(entries){ return [...entries].sort((a,b)=>Number(b.score)-Number(a.score)||Number(a.total_duration_ms)-Number(b.total_duration_ms)||String(a.created_at).localeCompare(String(b.created_at))).slice(0,25); }
+    function readLocalScores(){ try{const parsed=JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY)||"[]");return Array.isArray(parsed)?sortScores(parsed):[];}catch{return [];} }
+    function saveLocalScore(entry){ try{localStorage.setItem(LOCAL_SCORES_KEY,JSON.stringify(sortScores([...readLocalScores(),entry])));}catch{} }
+    function refreshLeaderboardView(){ if(state.mode==="solo"&&(state.screen==="setup"||state.screen==="results"))render(); }
+    async function loadLeaderboard(){
+      state.leaderboardStatus="loading";refreshLeaderboardView();
+      if(!supabaseReady()){state.leaderboard=readLocalScores();state.leaderboardStatus="local";refreshLeaderboardView();return;}
+      try{
+        const response=await fetch(`${supabaseBase()}/rest/v1/solo_scores?select=id,player_name,score,correct_answers,total_duration_ms,created_at&order=score.desc,total_duration_ms.asc,created_at.asc&limit=25`,{headers:supabaseHeaders()});
+        if(!response.ok)throw new Error(`Leaderboard request failed (${response.status})`);
+        state.leaderboard=await response.json();state.leaderboardStatus="ready";
+      }catch(error){console.warn(error);state.leaderboard=readLocalScores();state.leaderboardStatus="error";}
+      refreshLeaderboardView();
+    }
+    async function submitSoloScore(){
+      if(state.scoreSubmitted)return;state.scoreSubmitted=true;state.submitStatus="submitting";render();
+      const totalDuration=state.answerTimes.reduce((sum,value)=>sum+value,0), entry={id:`local-${Date.now()}`,player_name:state.players[0].name,score:state.players[0].score,correct_answers:state.correctFlags.filter(Boolean).length,total_duration_ms:totalDuration,created_at:new Date().toISOString()};
+      if(!supabaseReady()){saveLocalScore(entry);state.submissionId=entry.id;state.submitStatus="local";await loadLeaderboard();return;}
+      try{
+        const response=await fetch(`${supabaseBase()}/rest/v1/rpc/submit_solo_score`,{method:"POST",headers:{...supabaseHeaders(),"Content-Type":"application/json"},body:JSON.stringify({p_player_name:entry.player_name,p_answer_times_ms:state.answerTimes,p_correct:state.correctFlags})});
+        if(!response.ok)throw new Error(`Score submission failed (${response.status})`);
+        state.submissionId=await response.json();state.submitStatus="saved";await loadLeaderboard();
+      }catch(error){console.warn(error);saveLocalScore(entry);state.submissionId=entry.id;state.submitStatus="error";await loadLeaderboard();}
+    }
     function start(){
-      state.players=[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
-      state.starter=0; state.deck=makeDeck(); state.round=0; state.active=state.starter; state.guess=null; state.correct=null; state.screen="handoff"; render();
+      clearRoundTimer();state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;
+      state.players=state.mode==="solo"?[{name:cleanName(state.draftNames[0],"Player"),score:0}]:[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
+      state.starter=0;state.deck=makeDeck();state.round=0;state.active=0;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
     }
     function makeGuess(choice){
-      if(state.guess!==null)return; const fact=state.deck[state.round], correct=choice==="higher"?fact.target.value>fact.known.value:fact.target.value<fact.known.value;
-      state.guess=choice; state.correct=correct; if(correct)state.players[state.active].score++; buzz(correct); render();
+      if(state.guess!==null)return;const fact=state.deck[state.round], solo=state.mode==="solo";let elapsed=solo?Math.min(ROUND_MS,Math.max(0,performance.now()-state.roundStartedAt)):0;
+      if(solo&&elapsed>=ROUND_MS)choice="timeout";if(solo)clearRoundTimer();
+      const correct=choice!=="timeout"&&(choice==="higher"?fact.target.value>fact.known.value:fact.target.value<fact.known.value);
+      state.guess=choice;state.correct=correct;
+      if(solo){state.timeLeft=Math.max(0,ROUND_MS-elapsed);state.roundPoints=pointsFor(elapsed,correct);state.players[0].score+=state.roundPoints;state.answerTimes.push(Math.round(elapsed));state.correctFlags.push(correct);}else if(correct)state.players[state.active].score++;
+      buzz(correct);render();
     }
     function next(){
-      if(state.round+1>=state.rounds){state.screen="results";render();return;}
-      state.round++; state.active=state.active?0:1; state.guess=null; state.correct=null; state.screen="handoff"; render();
+      clearRoundTimer();if(state.round+1>=state.rounds){state.screen="results";render();if(state.mode==="solo")void submitSoloScore();return;}
+      state.round++;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;
+      if(state.mode==="solo")beginRound();else{state.active=state.active?0:1;state.screen="handoff";render();}
     }
-    function rematch(){ state.players.forEach(p=>p.score=0); state.starter=state.starter?0:1; state.deck=makeDeck(); state.round=0; state.active=state.starter; state.guess=null; state.correct=null; state.screen="handoff"; render(); }
+    function rematch(){
+      clearRoundTimer();state.players.forEach(p=>p.score=0);state.starter=state.mode==="solo"?0:(state.starter?0:1);state.deck=makeDeck();state.round=0;state.active=state.starter;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
+    }
     function bind(){
       document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
         const action=el.dataset.action;
-        if(action==="home"){state.screen="setup";state.rules=false;render();}
+        if(action==="home"){clearRoundTimer();state.screen="setup";state.rules=false;render();if(state.mode==="solo")void loadLeaderboard();}
         if(action==="rules"){state.rules=true;render();}
         if(action==="close-rules"){if(event.target===el||el.classList.contains("close")||el.classList.contains("primary")){state.rules=false;render();}}
-        if(action==="ready"){state.screen="playing";render();}
+        if(action==="ready")beginRound();
         if(action==="next")next(); if(action==="rematch")rematch();
       }));
+      document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen="setup";render();if(state.mode==="solo")void loadLeaderboard();}));
       document.querySelectorAll("[data-round]").forEach(el=>el.addEventListener("click",()=>{state.rounds=Number(el.dataset.round);render();}));
       document.querySelectorAll("[data-guess]").forEach(el=>el.addEventListener("click",()=>makeGuess(el.dataset.guess)));
       const form=document.getElementById("setup-form"); if(form){
         const one=document.getElementById("player-one"),two=document.getElementById("player-two");
-        one.addEventListener("input",()=>state.draftNames[0]=one.value); two.addEventListener("input",()=>state.draftNames[1]=two.value);
-        form.addEventListener("submit",event=>{event.preventDefault();state.draftNames=[one.value,two.value];start();});
+        one.addEventListener("input",()=>state.draftNames[0]=one.value);if(two)two.addEventListener("input",()=>state.draftNames[1]=two.value);
+        form.addEventListener("submit",event=>{event.preventDefault();state.draftNames=[one.value,two?two.value:state.draftNames[1]];start();});
       }
     }
     render();
