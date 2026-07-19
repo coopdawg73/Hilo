@@ -22,7 +22,7 @@ Questions, card direction, and answer wording change from round to round. Rematc
 ## Solo sprint
 
 - 10 ranked questions per run
-- 8-second timer on every question
+- 14-second timer on every question
 - Up to 1,000 points per correct answer
 - Faster correct answers earn more points, with a 100-point floor
 - Global rankings sort by score and then total answer time
