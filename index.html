@@ -279,6 +279,74 @@
     }
     @media (max-width:390px) { .guess-grid { grid-template-columns:1fr; } .fact.known { min-height:242px; } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+    /* Single-screen play: question, cards, and buttons all fit one viewport with no scrolling */
+    .shell:has(.game) { display:flex; flex-direction:column; height:100svh; min-height:0; overflow:hidden; padding-bottom:max(10px,env(safe-area-inset-bottom)); }
+    .shell:has(.game) .topbar { margin:0 auto; flex:0 0 auto; min-height:68px; }
+    .game { flex:1 1 auto; height:auto; min-height:0; display:flex; flex-direction:column; overflow:hidden; padding:14px 0 6px; }
+    .game .game-head { flex:0 0 auto; margin-bottom:10px; }
+    .game .question-banner { flex:0 0 auto; margin-bottom:12px; padding:15px 22px 17px; }
+    .game .question-banner h1 { margin-top:6px; font-size:clamp(23px,2.9vw,42px); }
+    .game .compare { flex:1 1 auto; min-height:0; align-items:stretch; }
+    .game .fact { min-height:0; padding:16px; border-radius:26px; }
+    .game .fact > p { margin-bottom:10px; }
+    .game .fact h2 { font-size:clamp(23px,2.5vw,38px); }
+    .game .number { margin-top:8px; font-size:clamp(38px,4.8vw,74px); }
+    .game .unit { margin-top:2px; }
+    .game .guess-grid { margin-top:14px; }
+    .game .guess { min-height:58px; }
+    .game .answer .chip { margin-top:11px; }
+    .game .answer .next { margin-top:13px; min-height:50px; }
+    .game .progress { flex:0 0 auto; margin-top:11px; }
+    @media (max-width:900px) {
+      .game .compare { grid-template-rows:minmax(0,1fr) 42px minmax(0,1fr); }
+      .game .fact { min-height:0; }
+    }
+    @media (max-width:620px) {
+      .game { padding:10px 0 4px; }
+      .game .game-head { margin-bottom:8px; }
+      .game .question-banner { margin-bottom:9px; padding:11px 14px 13px; }
+      .game .question-banner h1 { font-size:clamp(19px,6.2vw,29px); }
+      .game .fact { min-height:0; padding:11px 13px; border-radius:20px; }
+      .game .fact.known { min-height:0; }
+      .game .fact > p { margin-bottom:5px; }
+      .game .fact h2 { font-size:clamp(19px,5.2vw,29px); }
+      .game .number { margin-top:5px; font-size:clamp(32px,10.5vw,50px); }
+      .game .compare { grid-template-rows:minmax(0,1fr) 34px minmax(0,1fr); }
+      .game .vs { width:48px; height:48px; font-size:15px; }
+      .game .guess-grid { margin-top:10px; gap:8px; }
+      .game .guess { min-height:52px; font-size:19px; } .game .guess b { font-size:23px; }
+      .game .answer .next { margin-top:10px; min-height:46px; }
+      .game .progress { margin-top:8px; } .game .progress p { margin-top:5px; }
+    }
+    @media (max-width:390px) {
+      .game .fact.known { min-height:0; }
+      .game .number { font-size:clamp(28px,9.5vw,44px); }
+      .game .guess { min-height:48px; }
+    }
+    /* Short viewports: compress further and let cards size to content so the reveal card never clips */
+    @media (max-height:700px) {
+      .game { padding:8px 0 4px; }
+      .game .game-head { margin-bottom:5px; }
+      .game .question-banner { margin-bottom:6px; padding:8px 12px 10px; }
+      .game .question-banner h1 { font-size:clamp(16px,5.2vw,24px); }
+      .game .compare { grid-template-rows:auto 30px auto; align-content:center; }
+      .game .fact { padding:8px 12px; }
+      .game .fact > p { margin-bottom:4px; }
+      .game .fact h2 { font-size:clamp(16px,4.6vw,24px); }
+      .game .number { margin-top:3px; font-size:clamp(24px,7.5vw,38px); }
+      .game .unit { font-size:11px; }
+      .game .vs { width:42px; height:42px; font-size:14px; }
+      .game .guess-grid { margin-top:8px; }
+      .game .guess { min-height:44px; font-size:18px; } .game .guess b { font-size:21px; }
+      .game .answer .chip { margin-top:6px; padding:5px 11px; }
+      .game .answer .next { margin-top:7px; min-height:40px; }
+      .game .progress { margin-top:6px; } .game .progress p { margin-top:4px; }
+    }
+    /* Extreme short (e.g. landscape phones): allow scrolling rather than clip content */
+    @media (max-height:430px) {
+      .shell:has(.game) { height:auto; min-height:100svh; overflow:visible; }
+      .game { height:auto; min-height:0; overflow:visible; }
+    }
   </style>
 </head>
 <body>
