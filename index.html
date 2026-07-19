@@ -296,7 +296,12 @@
       distance:{up:"Longer",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} a longer or shorter distance than ${k.phrase}?`},
       duration:{up:"Longer",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} longer or shorter than ${k.phrase}?`},
       temperature:{up:"Higher",down:"Lower",ask:(t,k)=>`Does ${t.phrase} have a higher or lower melting point than ${k.phrase}?`},
-      frequency:{up:"More",down:"Fewer",ask:(t,k)=>`Do ${t.phrase} happen more or fewer times per day than ${k.phrase}?`}
+      frequency:{up:"More",down:"Fewer",ask:(t,k)=>`Do ${t.phrase} happen more or fewer times per day than ${k.phrase}?`},
+      heavier:{up:"Heavier",down:"Lighter",ask:(t,k)=>`Is ${t.phrase} heavier or lighter than ${k.phrase}?`},
+      older:{up:"Older",down:"Younger",ask:(t,k)=>`Is ${t.phrase} older or younger than ${k.phrase}?`},
+      deeper:{up:"Deeper",down:"Shallower",ask:(t,k)=>`Is ${t.phrase} deeper or shallower than ${k.phrase}?`},
+      hotter:{up:"Hotter",down:"Cooler",ask:(t,k)=>`Is ${t.phrase} hotter or cooler than ${k.phrase}?`},
+      population:{up:"Larger",down:"Smaller",ask:(t,k)=>`Does ${t.phrase} have a larger or smaller population than ${k.phrase}?`}
     };
     const FACTS = [
       fact("Landmark height","taller",item("Eiffel Tower","the Eiffel Tower",330,"330","meters"),item("Empire State Building","the Empire State Building",381,"381","meters to roof")),
@@ -318,14 +323,49 @@
       fact("Tower height","taller",item("Statue of Liberty","the Statue of Liberty",93,"93","meters, ground to torch"),item("Big Ben tower","Big Ben’s tower",96,"96","meters")),
       fact("Times per day","frequency",item("Heartbeats","heartbeats",100000,"100K","roughly"),item("Eye blinks","eye blinks",15000,"15K","roughly")),
       fact("States vs countries","count",item("United States","the United States",50,"50","states"),item("Africa","Africa",54,"54","countries")),
-      fact("Pool vs plane","longer",item("Olympic pool","an Olympic pool",50,"50","meters"),item("Boeing 747-8","a Boeing 747-8",76.3,"76.3","meters"))
+      fact("Pool vs plane","longer",item("Olympic pool","an Olympic pool",50,"50","meters"),item("Boeing 747-8","a Boeing 747-8",76.3,"76.3","meters")),
+      fact("Skyscraper height","taller",item("Burj Khalifa","the Burj Khalifa",828,"828","meters"),item("Shanghai Tower","the Shanghai Tower",632,"632","meters")),
+      fact("Tallest animal","taller",item("Giraffe","a giraffe",5.5,"5.5","meters tall"),item("African elephant","an African elephant",3.3,"3.3","meters at the shoulder")),
+      fact("Broadcast towers","taller",item("CN Tower","the CN Tower",553,"553","meters"),item("Willis Tower","the Willis Tower",442,"442","meters")),
+      fact("Nature vs landmark","taller",item("Coast redwood","the tallest coast redwood",116,"116","meters"),item("Big Ben","the Big Ben clock tower",96,"96","meters")),
+      fact("Bridge spans","longer",item("Golden Gate Bridge","the Golden Gate Bridge's main span",1280,"1,280","meters"),item("Brooklyn Bridge","the Brooklyn Bridge's main span",486,"486","meters")),
+      fact("River length","longer",item("Nile","the Nile River",6650,"6,650","km"),item("Mississippi","the Mississippi River",3730,"3,730","km")),
+      fact("Fastest dive","faster",item("Peregrine falcon","a diving peregrine falcon",389,"389","km/h"),item("Bugatti Chiron","a Bugatti Chiron",490,"490","km/h top speed")),
+      fact("Speed of sound","faster",item("Speed of sound","the speed of sound",1235,"1,235","km/h"),item("Airliner","a cruising airliner",900,"900","km/h")),
+      fact("Fast movers","faster",item("Sailfish","a sailfish",110,"110","km/h"),item("Racehorse","a racehorse",70,"70","km/h")),
+      fact("Biggest countries","area",item("Russia","Russia",17.1,"17.1M","square km"),item("Canada","Canada",9.98,"9.98M","square km")),
+      fact("Continent size","area",item("Asia","Asia",44.6,"44.6M","square km"),item("Africa","Africa",30.4,"30.4M","square km")),
+      fact("Cold continent","area",item("Antarctica","Antarctica",14.2,"14.2M","square km"),item("Australia","Australia",7.7,"7.7M","square km")),
+      fact("State vs country","area",item("Texas","Texas",695662,"695,662","square km"),item("France","France",551695,"551,695","square km")),
+      fact("Icy island","area",item("Greenland","Greenland",2.16,"2.16M","square km"),item("Mexico","Mexico",1.96,"1.96M","square km")),
+      fact("Tiny nations","area",item("Monaco","Monaco",2.02,"2.02","square km"),item("Vatican City","Vatican City",0.44,"0.44","square km")),
+      fact("String count","count",item("Guitar","a guitar",6,"6","strings"),item("Violin","a violin",4,"4","strings")),
+      fact("Arms vs limbs","count",item("Octopus","an octopus",8,"8","arms"),item("Squid","a squid",10,"10","limbs")),
+      fact("Team sizes","count",item("Soccer team","a soccer team",11,"11","players"),item("Baseball team","a baseball team",9,"9","players")),
+      fact("Leg count","count",item("Spider","a spider",8,"8","legs"),item("Insect","an insect",6,"6","legs")),
+      fact("Teeth count","count",item("Adult human","an adult human",32,"32","teeth"),item("Dog","a dog",42,"42","teeth")),
+      fact("Venus day vs year","duration",item("Day on Venus","a day on Venus",243,"243","Earth days"),item("Year on Venus","a year on Venus",225,"225","Earth days")),
+      fact("Daily sleep","duration",item("Cat sleep","a house cat's daily sleep",15,"15","hours"),item("Giraffe sleep","a giraffe's daily sleep",4,"4","hours")),
+      fact("Melting metals","temperature",item("Tungsten","tungsten",3422,"3,422°","Celsius"),item("Iron","iron",1538,"1,538°","Celsius")),
+      fact("Soft metals","temperature",item("Copper","copper",1085,"1,085°","Celsius"),item("Aluminum","aluminum",660,"660°","Celsius")),
+      fact("Heavy animals","heavier",item("African elephant","an African elephant",6000,"6,000","kg"),item("Hippo","a hippopotamus",1500,"1,500","kg")),
+      fact("Ball weight","heavier",item("Golf ball","a golf ball",46,"46","grams"),item("Ping pong ball","a ping pong ball",2.7,"2.7","grams")),
+      fact("Newborn weight","heavier",item("Newborn human","a newborn human",3300,"3,300","grams"),item("Newborn panda","a newborn giant panda",100,"100","grams")),
+      fact("Ancient wonders","older",item("Stonehenge","Stonehenge",5000,"~5,000","years old"),item("Great Pyramid","the Great Pyramid of Giza",4500,"~4,500","years old")),
+      fact("Cosmic age","older",item("The universe","the universe",13.8,"13.8B","years old"),item("Earth","Earth",4.54,"4.54B","years old")),
+      fact("Deep places","deeper",item("Mariana Trench","the Mariana Trench",10935,"10,935","meters deep"),item("Grand Canyon","the Grand Canyon",1857,"1,857","meters deep")),
+      fact("What's hotter","hotter",item("Lightning bolt","a lightning bolt",30000,"30,000°","Celsius"),item("Sun's surface","the Sun's surface",5500,"5,500°","Celsius")),
+      fact("Molten heat","hotter",item("Lava","molten lava",1200,"1,200°","Celsius"),item("Boiling water","boiling water",100,"100°","Celsius")),
+      fact("Cruising altitude","higher",item("Airliner","a cruising airliner",11000,"11,000","meters"),item("Mount Everest","the summit of Mount Everest",8849,"8,849","meters")),
+      fact("Population giants","population",item("India","India",1.428,"1.428B","people"),item("China","China",1.411,"1.411B","people")),
+      fact("Metro populations","population",item("Tokyo","Tokyo's metro area",37,"37M","people"),item("London","London's metro area",14,"14M","people"))
     ];
     const ROUND_MS = 8000;
     const SOLO_ROUNDS = 10;
     const LOCAL_SCORES_KEY = "hilo-solo-scores-v1";
     const CONFIG = window.HILO_CONFIG || {};
     const state = {
-      screen:"setup", mode:"duo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
+      screen:"setup", mode:"solo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
       active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
       timerId:null, roundPoints:0, answerTimes:[], correctFlags:[], leaderboard:[], leaderboardStatus:"idle",
       submitStatus:"idle", scoreSubmitted:false, submissionId:null
@@ -361,7 +401,7 @@
       const solo=state.mode==="solo";
       return shell(`<section class="setup enter" aria-labelledby="setup-title">
         <div class="hero"><p class="eyebrow"><i></i>${solo?"Solo sprint · global glory":"Two players · one phone"}</p><h1 id="setup-title">${solo?`Eight seconds.<br><span>Make it count.</span>`:`Trust your gut.<br><span>Then talk trash.</span>`}</h1><p class="hero-copy">${solo?"Race through 10 questions. A correct instant answer is worth 1,000 points; hesitate and the clock eats your score.":"Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor."}</p></div>
-        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode"><button type="button" data-mode="duo" class="${solo?"":"selected"}" aria-pressed="${!solo}">Two players</button><button type="button" data-mode="solo" class="${solo?"selected":""}" aria-pressed="${solo}">Solo sprint</button></div><div class="card-title"><span class="step">${solo?"⚡":"01"}</span><div><p>${solo?"Ranked challenge":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
+        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode"><button type="button" data-mode="solo" class="${solo?"selected":""}" aria-pressed="${solo}">Solo sprint</button><button type="button" data-mode="duo" class="${solo?"":"selected"}" aria-pressed="${!solo}">Two players</button></div><div class="card-title"><span class="step">${solo?"⚡":"01"}</span><div><p>${solo?"Ranked challenge":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
           ${solo?`<div class="names"><label><span>Leaderboard name</span><input id="player-one" maxlength="14" autocomplete="nickname" value="${esc(state.draftNames[0])}"></label></div><div class="solo-facts"><div class="solo-fact"><strong>10</strong><span>Questions</span></div><div class="solo-fact"><strong>8s</strong><span>Each</span></div><div class="solo-fact"><strong>10K</strong><span>Max score</span></div></div>`:`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div><fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>`}
           <button class="primary" type="submit">${solo?"Start ranked run":"Start game"} <b aria-hidden="true">→</b></button>${solo?`<p class="public-note">Your display name and final score will appear publicly when the global board is connected.</p>`:`<p class="fine">No login. No ads. No funny business.</p>`}
         </form>${solo?leaderboardView():""}</div></section>`);
@@ -480,6 +520,7 @@
       }
     }
     render();
+    if(state.mode==="solo")void loadLeaderboard();
   </script>
 </body>
 </html>
