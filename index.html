@@ -101,9 +101,14 @@
     .center-action { max-width:330px; margin-top:30px; }
     .center-screen small { margin-top:17px; color:#746d80; }
     .game { width:min(1296px,calc(100% - 56px)); min-height:calc(100svh - 88px); margin:auto; padding:38px 0 54px; }
-    .game-head { display:flex; align-items:end; justify-content:space-between; gap:28px; margin-bottom:27px; }
-    .game-head .eyebrow { margin-bottom:11px; }
-    .game-head h1 { margin:0; font-size:clamp(38px,4.1vw,66px); }
+    .game-head { display:flex; align-items:center; justify-content:space-between; gap:28px; margin-bottom:17px; }
+    .game-head .eyebrow { margin:0; }
+    .question-banner { position:relative; overflow:hidden; margin-bottom:26px; padding:27px 34px 30px; border:1px solid rgba(200,255,61,.32); border-radius:28px; background:radial-gradient(circle at 50% 0%,rgba(200,255,61,.1),transparent 48%),rgba(15,9,26,.76); text-align:center; box-shadow:inset 0 1px rgba(255,255,255,.05),0 18px 58px rgba(0,0,0,.24); }
+    .question-banner::before { content:""; position:absolute; top:0; left:20%; right:20%; height:2px; background:linear-gradient(90deg,transparent,var(--lime),transparent); box-shadow:0 0 18px rgba(200,255,61,.55); }
+    .question-label { display:block; color:var(--muted); font-size:10px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+    .question-banner h1 { max-width:1020px; margin:10px auto 0; font-size:clamp(34px,4vw,58px); line-height:1.08; letter-spacing:-.045em; text-transform:none; }
+    .question-banner .target-word { color:#cf82ff; text-shadow:0 0 24px rgba(176,76,255,.24); }
+    .question-banner .known-word { color:var(--lime); text-shadow:0 0 24px rgba(200,255,61,.18); }
     .scores { flex:0 0 auto; display:flex; padding:5px; border:1px solid rgba(176,76,255,.55); border-radius:999px; background:rgba(15,9,26,.84); box-shadow:0 0 28px rgba(139,92,246,.13); }
     .score { min-width:146px; min-height:56px; border-radius:999px; padding:7px 16px; display:flex; align-items:center; justify-content:center; gap:15px; color:var(--muted); }
     .score.active { background:rgba(139,92,246,.18); color:var(--white); box-shadow:inset 0 0 0 1px rgba(176,76,255,.34); }
@@ -167,7 +172,7 @@
     @media (max-width:900px) {
       .setup { grid-template-columns:1fr; gap:44px; padding-top:48px; }
       .hero { text-align:center; } .hero .eyebrow { justify-content:center; } .hero h1,.hero-copy { margin-left:auto; margin-right:auto; }
-      .game-head { align-items:stretch; flex-direction:column; } .scores { align-self:center; }
+      .game-head { align-items:stretch; flex-direction:column; } .game-head .eyebrow { justify-content:center; } .scores { align-self:center; }
       .compare { grid-template-columns:1fr; grid-template-rows:auto 50px auto; } .vs { width:64px; height:64px; }
       .fact { min-height:382px; }
     }
@@ -181,7 +186,9 @@
       .turn-orbit { width:90px; height:90px; } .turn-orbit span { font-size:37px; }
       .center-screen h1 { font-size:clamp(52px,16vw,78px); }
       .game { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:26px 0 42px; }
-      .game-head { margin-bottom:19px; } .game-head h1 { font-size:37px; }
+      .game-head { gap:13px; margin-bottom:15px; }
+      .question-banner { margin-bottom:18px; padding:20px 15px 22px; border-radius:22px; }
+      .question-banner h1 { margin-top:8px; font-size:clamp(28px,8.8vw,38px); line-height:1.08; }
       .scores { width:100%; } .score { width:50%; min-width:0; min-height:50px; gap:8px; padding:6px 9px; }
       .score span { max-width:73px; } .score strong { font-size:22px; }
       .fact { min-height:294px; padding:27px 19px; border-radius:28px; } .fact.known { min-height:260px; }
@@ -203,37 +210,54 @@
   <main id="app"></main>
   <div id="modal-root"></div>
   <script>
+    const item = (name,phrase,value,display,unit) => ({name,phrase,value,display,unit});
+    const fact = (topic,type,a,b) => ({topic,type,items:[a,b]});
+    const QUESTION_TYPES = {
+      taller:{up:"Taller",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} taller or shorter than ${k.phrase}?`},
+      wider:{up:"Wider",down:"Narrower",ask:(t,k)=>`Is ${t.phrase} wider or narrower than ${k.phrase}?`},
+      area:{up:"Larger",down:"Smaller",ask:(t,k)=>`Is ${t.phrase} larger or smaller than ${k.phrase}?`},
+      count:{up:"More",down:"Fewer",ask:(t,k)=>`Does ${t.phrase} have more or fewer ${t.unit} than ${k.phrase} has ${k.unit}?`},
+      longer:{up:"Longer",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} longer or shorter than ${k.phrase}?`},
+      faster:{up:"Faster",down:"Slower",ask:(t,k)=>`Is ${t.phrase} faster or slower than ${k.phrase}?`},
+      higher:{up:"Higher",down:"Lower",ask:(t,k)=>`Is ${t.phrase} higher or lower than ${k.phrase}?`},
+      distance:{up:"Longer",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} a longer or shorter distance than ${k.phrase}?`},
+      duration:{up:"Longer",down:"Shorter",ask:(t,k)=>`Is ${t.phrase} longer or shorter than ${k.phrase}?`},
+      temperature:{up:"Higher",down:"Lower",ask:(t,k)=>`Does ${t.phrase} have a higher or lower melting point than ${k.phrase}?`},
+      frequency:{up:"More",down:"Fewer",ask:(t,k)=>`Do ${t.phrase} happen more or fewer times per day than ${k.phrase}?`}
+    };
     const FACTS = [
-      ["Landmark height",["Eiffel Tower",330,"330","meters"],["Empire State",381,"381","meters to roof"]],
-      ["Mountain height",["Mount Everest",8849,"8,849","meters"],["K2",8611,"8,611","meters"]],
-      ["Worlds in space",["The Moon",3475,"3,475","km wide"],["Mercury",4879,"4,879","km wide"]],
-      ["Ocean area",["Pacific Ocean",165.2,"165.2M","square km"],["Atlantic Ocean",106.5,"106.5M","square km"]],
-      ["How many?",["Adult human bones",206,"206","bones"],["Piano keys",88,"88","keys"]],
-      ["Game pieces",["Playing card deck",52,"52","cards"],["Chessboard",64,"64","squares"]],
-      ["Field length",["Soccer pitch",105,"105","meters"],["Football field",109.7,"109.7","meters incl. end zones"]],
-      ["Top speed",["Cheetah",120,"120","km/h"],["Greyhound",72,"72","km/h"]],
-      ["Length",["Blue whale",30,"30","meters"],["Basketball court",28.65,"28.65","meters"]],
-      ["Distance",["Marathon",42.195,"42.2","km"],["English Channel",33.3,"33.3","km at narrowest"]],
-      ["Sports height",["NBA hoop",3.05,"3.05","meters"],["Men’s volleyball net",2.43,"2.43","meters"]],
-      ["Epic distance",["Great Wall",21196,"21,196","km total"],["Earth’s diameter",12742,"12,742","km"]],
-      ["Space distance",["Earth to Moon",384400,"384,400","km average"],["Around the Earth",40075,"40,075","km"]],
-      ["Length of a year",["Mercury",88,"88","Earth days"],["Mars",687,"687","Earth days"]],
-      ["Pregnancy length",["Camel",13,"13","months"],["Elephant",22,"22","months"]],
-      ["Melting point",["Gold",1064,"1,064°","Celsius"],["Iron",1538,"1,538°","Celsius"]],
-      ["Tower height",["Statue of Liberty",93,"93","meters, ground to torch"],["Big Ben tower",96,"96","meters"]],
-      ["Times per day",["Heart beats",100000,"100K","roughly"],["Eye blinks",15000,"15K","roughly"]],
-      ["On the map",["U.S. states",50,"50","states"],["African countries",54,"54","UN members"]],
-      ["Length",["Olympic pool",50,"50","meters"],["Boeing 747-8",76.3,"76.3","meters"]]
+      fact("Landmark height","taller",item("Eiffel Tower","the Eiffel Tower",330,"330","meters"),item("Empire State Building","the Empire State Building",381,"381","meters to roof")),
+      fact("Mountain height","taller",item("Mount Everest","Mount Everest",8849,"8,849","meters"),item("K2","K2",8611,"8,611","meters")),
+      fact("Worlds in space","wider",item("The Moon","the Moon",3475,"3,475","km wide"),item("Mercury","Mercury",4879,"4,879","km wide")),
+      fact("Ocean area","area",item("Pacific Ocean","the Pacific Ocean",165.2,"165.2M","square km"),item("Atlantic Ocean","the Atlantic Ocean",106.5,"106.5M","square km")),
+      fact("Bones vs keys","count",item("Adult human skeleton","an adult human skeleton",206,"206","bones"),item("Piano","a piano",88,"88","keys")),
+      fact("Cards vs squares","count",item("Standard card deck","a standard card deck",52,"52","cards"),item("Chessboard","a chessboard",64,"64","squares")),
+      fact("Field length","longer",item("Soccer pitch","a soccer pitch",105,"105","meters"),item("Football field","an American football field",109.7,"109.7","meters incl. end zones")),
+      fact("Top speed","faster",item("Cheetah","a cheetah",120,"120","km/h"),item("Greyhound","a greyhound",72,"72","km/h")),
+      fact("Unexpected length","longer",item("Blue whale","a blue whale",30,"30","meters"),item("Basketball court","a basketball court",28.65,"28.65","meters")),
+      fact("Distance","longer",item("Marathon","a marathon",42.195,"42.2","km"),item("English Channel","the English Channel crossing",33.3,"33.3","km at narrowest")),
+      fact("Sports height","higher",item("NBA hoop","an NBA hoop",3.05,"3.05","meters"),item("Men’s volleyball net","a men’s volleyball net",2.43,"2.43","meters")),
+      fact("Epic distance","longer",item("Great Wall","the Great Wall",21196,"21,196","km total"),item("Earth’s diameter","Earth’s diameter",12742,"12,742","km")),
+      fact("Space distance","distance",item("Earth to Moon","the Earth-to-Moon trip",384400,"384,400","km average"),item("Around the Earth","one trip around Earth",40075,"40,075","km")),
+      fact("Length of a year","duration",item("Year on Mercury","a year on Mercury",88,"88","Earth days"),item("Year on Mars","a year on Mars",687,"687","Earth days")),
+      fact("Pregnancy length","duration",item("Camel pregnancy","a camel pregnancy",13,"13","months"),item("Elephant pregnancy","an elephant pregnancy",22,"22","months")),
+      fact("Melting point","temperature",item("Gold","gold",1064,"1,064°","Celsius"),item("Iron","iron",1538,"1,538°","Celsius")),
+      fact("Tower height","taller",item("Statue of Liberty","the Statue of Liberty",93,"93","meters, ground to torch"),item("Big Ben tower","Big Ben’s tower",96,"96","meters")),
+      fact("Times per day","frequency",item("Heartbeats","heartbeats",100000,"100K","roughly"),item("Eye blinks","eye blinks",15000,"15K","roughly")),
+      fact("States vs countries","count",item("United States","the United States",50,"50","states"),item("Africa","Africa",54,"54","countries")),
+      fact("Pool vs plane","longer",item("Olympic pool","an Olympic pool",50,"50","meters"),item("Boeing 747-8","a Boeing 747-8",76.3,"76.3","meters"))
     ];
     const state = {
       screen:"setup", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
-      active:0, guess:null, correct:null, rules:false
+      active:0, starter:0, guess:null, correct:null, rules:false
     };
     const app = document.getElementById("app");
     const modalRoot = document.getElementById("modal-root");
     const esc = value => String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
     const cleanName = (value,fallback) => value.trim().slice(0,14) || fallback;
     const shuffle = list => { const copy=[...list]; for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];} return copy; };
+    const makeDeck = () => shuffle(FACTS).slice(0,state.rounds).map(source=>{const order=Math.random()<.5?source.items:[...source.items].reverse();return {...source,known:order[0],target:order[1]};});
+    const questionFor = current => { const decorate=(value,kind)=>({...value,phrase:`<strong class="${kind}-word">${esc(value.phrase)}</strong>`,unit:esc(value.unit)}); return QUESTION_TYPES[current.type].ask(decorate(current.target,"target"),decorate(current.known,"known")); };
     const buzz = correct => { if(navigator.vibrate) navigator.vibrate(correct?45:[45,45,80]); };
 
     function header(){
@@ -244,7 +268,7 @@
     }
     function setupView(){
       return shell(`<section class="setup enter" aria-labelledby="setup-title">
-        <div class="hero"><p class="eyebrow"><i></i>Two players · one phone</p><h1 id="setup-title">Trust your gut.<br><span>Then talk trash.</span></h1><p class="hero-copy">Guess whether the hidden number is higher or lower. Take turns, rack up points, and settle the argument like adults. Sort of.</p></div>
+        <div class="hero"><p class="eyebrow"><i></i>Two players · one phone</p><h1 id="setup-title">Trust your gut.<br><span>Then talk trash.</span></h1><p class="hero-copy">Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor.</p></div>
         <form class="setup-card panel" id="setup-form"><div class="card-title"><span class="step">01</span><div><p>Game setup</p><h2>Who’s playing?</h2></div></div>
           <div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div>
           <fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>
@@ -256,11 +280,12 @@
       return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>${state.round+1}</span></div><p class="eyebrow"><i></i>Round ${state.round+1} of ${state.rounds}</p><h1 id="handoff-title">Pass it to<br><strong>${esc(player.name)}</strong></h1><p>No peeking. Your turn starts when you tap ready.</p><button class="primary center-action" data-action="ready">I’m ready <b aria-hidden="true">→</b></button>${state.round?`<small>${esc(other.name)} just finished their turn.</small>`:""}</section>`);
     }
     function gameView(){
-      const fact=state.deck[state.round], left=fact[1], right=fact[2], player=state.players[state.active], other=state.players[state.active?0:1];
-      const reveal=state.guess!==null;
-      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><div><p class="eyebrow"><i></i>${esc(fact[0])}</p><h1 id="game-title">Which one has the bigger number?</h1></div><div class="scores" aria-label="Scores">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${p.score}</strong></div>`).join("")}</div></div>
-        <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left[0])}</h2><div class="number lime">${esc(left[2])}</div><span class="unit">${esc(left[3])}</span></article><div class="vs" aria-hidden="true">VS</div>
-          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.correct?"Nice call":"Not quite"):"Your guess"}</p><h2>${esc(right[0])}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right[2])}</div><span class="unit">${esc(right[3])}</span><div class="chip ${state.correct?"right":"miss"}">${state.correct?"+1 point":"No point"}</div><button class="next" data-action="next">${state.round+1>=state.rounds?"See final score":`Pass to ${esc(other.name)}`}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>Higher</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>Lower</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
+      const fact=state.deck[state.round], left=fact.known, right=fact.target, choices=QUESTION_TYPES[fact.type], player=state.players[state.active], other=state.players[state.active?0:1];
+      const reveal=state.guess!==null, rightAnswer=right.value>left.value?choices.up:choices.down;
+      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><p class="eyebrow"><i></i>${esc(fact.topic)}</p><div class="scores" aria-label="Scores">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${p.score}</strong></div>`).join("")}</div></div>
+        <div class="question-banner"><span class="question-label">Your question</span><h1 id="game-title">${questionFor(fact)}</h1></div>
+        <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left.name)}</h2><div class="number lime">${esc(left.display)}</div><span class="unit">${esc(left.unit)}</span></article><div class="vs" aria-hidden="true">VS</div>
+          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.correct?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.correct?"right":"miss"}">${state.correct?"Correct · +1 point":`Answer: ${esc(rightAnswer)}`}</div><button class="next" data-action="next">${state.round+1>=state.rounds?"See final score":`Pass to ${esc(other.name)}`}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
         <div class="progress" aria-label="Round ${state.round+1} of ${state.rounds}"><div class="track"><i style="width:${((state.round+1)/state.rounds)*100}%"></i></div><p>Round <strong>${state.round+1}</strong> of ${state.rounds} · ${esc(player.name)}’s turn</p></div></section>`);
     }
     function resultsView(){
@@ -271,7 +296,7 @@
     }
     function rulesView(){
       if(!state.rules){modalRoot.innerHTML="";return;}
-      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Look</strong><span>One number is shown. The other stays hidden.</span></li><li><strong>Guess</strong><span>Tap higher or lower before your confidence disappears.</span></li><li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li></ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
+      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li><li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li></ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
     }
     function render(){
       app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="playing"?gameView():resultsView();
@@ -279,17 +304,17 @@
     }
     function start(){
       state.players=[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
-      state.deck=shuffle(FACTS).slice(0,state.rounds); state.round=0; state.active=0; state.guess=null; state.correct=null; state.screen="handoff"; render();
+      state.starter=0; state.deck=makeDeck(); state.round=0; state.active=state.starter; state.guess=null; state.correct=null; state.screen="handoff"; render();
     }
     function makeGuess(choice){
-      if(state.guess!==null)return; const fact=state.deck[state.round], correct=choice==="higher"?fact[2][1]>fact[1][1]:fact[2][1]<fact[1][1];
+      if(state.guess!==null)return; const fact=state.deck[state.round], correct=choice==="higher"?fact.target.value>fact.known.value:fact.target.value<fact.known.value;
       state.guess=choice; state.correct=correct; if(correct)state.players[state.active].score++; buzz(correct); render();
     }
     function next(){
       if(state.round+1>=state.rounds){state.screen="results";render();return;}
       state.round++; state.active=state.active?0:1; state.guess=null; state.correct=null; state.screen="handoff"; render();
     }
-    function rematch(){ state.players.forEach(p=>p.score=0); state.deck=shuffle(FACTS).slice(0,state.rounds); state.round=0; state.active=0; state.guess=null; state.correct=null; state.screen="handoff"; render(); }
+    function rematch(){ state.players.forEach(p=>p.score=0); state.starter=state.starter?0:1; state.deck=makeDeck(); state.round=0; state.active=state.starter; state.guess=null; state.correct=null; state.screen="handoff"; render(); }
     function bind(){
       document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
         const action=el.dataset.action;
