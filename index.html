@@ -140,6 +140,9 @@
     .score.active { background:rgba(139,92,246,.18); color:var(--white); box-shadow:inset 0 0 0 1px rgba(176,76,255,.34); }
     .score span { max-width:84px; overflow:hidden; text-overflow:ellipsis; font-size:11px; font-weight:850; text-transform:uppercase; letter-spacing:.07em; }
     .score strong { color:var(--lime); font-size:26px; font-variant-numeric:tabular-nums; }
+    .score .streak-flag { margin-left:2px; font-size:12px; font-weight:850; color:#ffb84d; white-space:nowrap; }
+    .final-player .streak-flag { display:block; margin-top:8px; font-size:11px; font-weight:850; color:#ffb84d; }
+    .share-btn { width:100%; min-height:52px; margin-top:12px; border-radius:16px; }
     .scores.solo .score { min-width:190px; }
     .solo-meta { display:flex; align-items:center; gap:10px; }
     .timer { width:132px; min-height:66px; position:relative; overflow:hidden; border:1px solid rgba(200,255,61,.48); border-radius:20px; background:rgba(15,9,26,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 0 26px rgba(200,255,61,.09); }
@@ -323,12 +326,21 @@
     const ROUND_MS = 8000;
     const SOLO_ROUNDS = 10;
     const LOCAL_SCORES_KEY = "hilo-solo-scores-v1";
+    const SHARE_URL = "https://coopdawg73.github.io/Hilo/";
+    const STREAK_TIERS = [
+      {at:3,mult:1.15,bonus:1,label:"3-streak"},
+      {at:5,mult:1.35,bonus:2,label:"5-streak"},
+      {at:8,mult:1.6,bonus:3,label:"8-streak"}
+    ];
+    const streakTier = streak => STREAK_TIERS.reduce((best,tier)=>streak>=tier.at?tier:best,null);
+    const HAPTIC = { correct:[40], wrong:[45,50,90], milestone:[30,45,30,45,70], urgent:[25] };
     const CONFIG = window.HILO_CONFIG || {};
     const state = {
       screen:"setup", mode:"duo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
       active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
-      timerId:null, roundPoints:0, answerTimes:[], correctFlags:[], leaderboard:[], leaderboardStatus:"idle",
-      submitStatus:"idle", scoreSubmitted:false, submissionId:null
+      timerId:null, roundPoints:0, roundTier:null, urgentBuzzed:false, answerTimes:[], correctFlags:[],
+      leaderboard:[], leaderboardStatus:"idle", submitStatus:"idle", scoreSubmitted:false, submissionId:null,
+      shareStatus:"idle"
     };
     const app = document.getElementById("app");
     const modalRoot = document.getElementById("modal-root");
@@ -342,7 +354,7 @@
     const supabaseBase = () => String(CONFIG.supabaseUrl||"").replace(/\/$/,"");
     const supabaseHeaders = () => String(CONFIG.supabaseAnonKey).startsWith("sb_publishable_")?{apikey:CONFIG.supabaseAnonKey}:{apikey:CONFIG.supabaseAnonKey,Authorization:`Bearer ${CONFIG.supabaseAnonKey}`};
     const pointsFor = (elapsed,correct) => correct?Math.max(100,Math.round(1000*(ROUND_MS-Math.min(elapsed,ROUND_MS))/ROUND_MS)):0;
-    const buzz = correct => { if(navigator.vibrate) navigator.vibrate(correct?45:[45,45,80]); };
+    const buzz = pattern => { if(navigator.vibrate) navigator.vibrate(pattern); };
 
     function header(){
       return `<header class="topbar"><button class="brand" data-action="home" aria-label="Hilo home"><strong>HILO</strong><span>Higher or lower</span></button><button class="ghost" data-action="rules">How to play</button></header>`;
@@ -374,12 +386,12 @@
     function gameView(){
       const solo=state.mode==="solo", fact=state.deck[state.round], left=fact.known, right=fact.target, choices=QUESTION_TYPES[fact.type], player=state.players[state.active], other=solo?null:state.players[state.active?0:1];
       const reveal=state.guess!==null, rightAnswer=right.value>left.value?choices.up:choices.down, seconds=(state.timeLeft/1000).toFixed(1);
-      const scoreBoard=`<div class="scores ${solo?"solo":""}" aria-label="${solo?"Score":"Scores"}">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${formatScore(p.score)}</strong></div>`).join("")}</div>`;
+      const scoreBoard=`<div class="scores ${solo?"solo":""}" aria-label="${solo?"Score":"Scores"}">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${formatScore(p.score)}</strong>${p.streak>=2?`<small class="streak-flag">🔥${p.streak}</small>`:""}</div>`).join("")}</div>`;
       const timer=`<div class="timer ${state.timeLeft<=2500?"urgent":""}" id="round-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${seconds}"><span>${reveal?(state.guess==="timeout"?"Time’s up":"Locked in"):"Time left"}</span><strong><span id="timer-number">${seconds}</span><small>s</small></strong><div class="timer-track"><i id="timer-fill" style="width:${(state.timeLeft/ROUND_MS)*100}%"></i></div></div>`;
       return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><p class="eyebrow"><i></i>${esc(fact.topic)}</p>${solo?`<div class="solo-meta">${timer}${scoreBoard}</div>`:scoreBoard}</div>
         <div class="question-banner"><span class="question-label">${solo?`Question ${state.round+1} of ${state.rounds}`:"Your question"}</span><h1 id="game-title">${questionFor(fact)}</h1></div>
         <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left.name)}</h2><div class="number lime">${esc(left.display)}</div><span class="unit">${esc(left.unit)}</span></article><div class="vs" aria-hidden="true">VS</div>
-          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.guess==="timeout"?"Time’s up":state.correct?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.correct?"right":"miss"}">${solo?(state.correct?`+${formatScore(state.roundPoints)} points`:`Answer: ${esc(rightAnswer)}`):(state.correct?"Correct · +1 point":`Answer: ${esc(rightAnswer)}`)}</div><button class="next" data-action="next">${state.round+1>=state.rounds?(solo?"See leaderboard":"See final score"):(solo?"Next question":`Pass to ${esc(other.name)}`)}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
+          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.guess==="timeout"?"Time’s up":state.correct?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.correct?"right":"miss"}">${state.correct?(solo?`+${formatScore(state.roundPoints)} points${state.roundTier?` · 🔥 ${state.roundTier.label} bonus`:""}`:`Correct · +${state.roundPoints} point${state.roundPoints===1?"":"s"}${state.roundTier?" · 🔥 combo bonus":""}`):`Answer: ${esc(rightAnswer)}`}</div><button class="next" data-action="next">${state.round+1>=state.rounds?(solo?"See leaderboard":"See final score"):(solo?"Next question":`Pass to ${esc(other.name)}`)}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
         <div class="progress" aria-label="Round ${state.round+1} of ${state.rounds}"><div class="track"><i style="width:${((state.round+1)/state.rounds)*100}%"></i></div><p>Round <strong>${state.round+1}</strong> of ${state.rounds} · ${solo?`${formatScore(player.score)} points`: `${esc(player.name)}’s turn`}</p></div></section>`);
     }
     function soloResultsView(){
@@ -387,14 +399,15 @@
       const verdict=score>=8500?"Lightning brain. Questionably human.":score>=6500?"Fast, accurate, and now extremely annoying to compete with.":score>=4000?"Solid run. The leaderboard has officially been warned.":"A respectable warm-up. Run it back and trust the first instinct.";
       const statusText=state.submitStatus==="submitting"?"Submitting your run…":state.submitStatus==="saved"?"Score added to the global leaderboard.":state.submitStatus==="local"?"Score saved on this phone. Connect Supabase to make it global.":state.submitStatus==="error"?"The global board could not be reached; your score was saved on this phone.":"Preparing your result…";
       const statusClass=state.submitStatus==="saved"?"good":state.submitStatus==="error"?"warn":"";
-      return shell(`<section class="solo-results enter" aria-labelledby="results-title"><div class="solo-result-card panel"><p class="eyebrow"><i></i>Solo sprint complete</p><h1 id="results-title">${formatScore(score)}</h1><p>${verdict}</p><div class="solo-stats"><div class="solo-stat"><strong>${correct}/${state.rounds}</strong><span>Correct</span></div><div class="solo-stat"><strong>${(average/1000).toFixed(1)}s</strong><span>Avg answer</span></div><div class="solo-stat"><strong>${formatScore(state.rounds*1000)}</strong><span>Max score</span></div></div><p class="submission-status ${statusClass}" aria-live="polite">${statusText}</p><div class="solo-actions"><button class="primary" data-action="rematch">Run it again <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change mode</button></div></div>${leaderboardView()}</section>`);
+      return shell(`<section class="solo-results enter" aria-labelledby="results-title"><div class="solo-result-card panel"><p class="eyebrow"><i></i>Solo sprint complete</p><h1 id="results-title">${formatScore(score)}</h1><p>${verdict}</p><div class="solo-stats"><div class="solo-stat"><strong>${correct}/${state.rounds}</strong><span>Correct</span></div><div class="solo-stat"><strong>${(average/1000).toFixed(1)}s</strong><span>Avg answer</span></div><div class="solo-stat"><strong>🔥${state.players[0].bestStreak}</strong><span>Best streak</span></div></div><p class="submission-status ${statusClass}" aria-live="polite">${statusText}</p><div class="solo-actions"><button class="primary" data-action="rematch">Run it again <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change mode</button></div><button class="ghost share-btn" data-action="share" data-share-kind="solo">Share result <b aria-hidden="true">↗</b></button><p class="submission-status ${state.shareStatus==="error"?"warn":state.shareStatus==="shared"||state.shareStatus==="done"?"good":""}" aria-live="polite">${shareStatusText()}</p></div>${leaderboardView()}</section>`);
     }
     function resultsView(){
       if(state.mode==="solo") return soloResultsView();
       const tied=state.players[0].score===state.players[1].score; const winner=tied?null:(state.players[0].score>state.players[1].score?state.players[0]:state.players[1]);
       return shell(`<section class="center-screen results enter" aria-labelledby="results-title"><p class="eyebrow"><i></i>Final score</p><div class="trophy" aria-hidden="true">★</div><h1 id="results-title">${tied?"It’s a tie!":`${esc(winner.name)} wins!`}</h1><p>${tied?"Dead even. There’s only one responsible choice: run it back.":"The numbers have spoken. Bragging rights are now legally binding."}</p>
-        <div class="final-scores panel">${state.players.map(p=>{const won=!tied&&p===winner;return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${p.score}</strong><small>points</small></div>`}).join("")}</div>
-        <div class="result-actions"><button class="primary" data-action="rematch">Run it back <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change players</button></div></section>`);
+        <div class="final-scores panel">${state.players.map(p=>{const won=!tied&&p===winner;return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${p.score}</strong><small>points</small>${p.bestStreak>=2?`<span class="streak-flag">🔥${p.bestStreak} best streak</span>`:""}</div>`}).join("")}</div>
+        <div class="result-actions"><button class="primary" data-action="rematch">Run it back <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change players</button></div>
+        <button class="ghost share-btn" data-action="share" data-share-kind="duo">Share result <b aria-hidden="true">↗</b></button><p class="submission-status ${state.shareStatus==="error"?"warn":state.shareStatus==="shared"||state.shareStatus==="done"?"good":""}" aria-live="polite">${shareStatusText()}</p></section>`);
     }
     function rulesView(){
       if(!state.rules){modalRoot.innerHTML="";return;}
@@ -412,10 +425,14 @@
       const seconds=(state.timeLeft/1000).toFixed(1); number.textContent=seconds; fill.style.width=`${(state.timeLeft/ROUND_MS)*100}%`; timer.setAttribute("aria-valuenow",seconds); timer.classList.toggle("urgent",state.timeLeft<=2500);
     }
     function startRoundTimer(){
-      clearRoundTimer(); state.roundStartedAt=performance.now(); state.timeLeft=ROUND_MS; updateTimerDisplay();
-      state.timerId=setInterval(()=>{state.timeLeft=Math.max(0,ROUND_MS-(performance.now()-state.roundStartedAt));updateTimerDisplay();if(state.timeLeft<=0){clearRoundTimer();makeGuess("timeout");}},50);
+      clearRoundTimer(); state.roundStartedAt=performance.now(); state.timeLeft=ROUND_MS; state.urgentBuzzed=false; updateTimerDisplay();
+      state.timerId=setInterval(()=>{
+        state.timeLeft=Math.max(0,ROUND_MS-(performance.now()-state.roundStartedAt));updateTimerDisplay();
+        if(!state.urgentBuzzed&&state.timeLeft<=2500&&state.timeLeft>0){state.urgentBuzzed=true;buzz(HAPTIC.urgent);}
+        if(state.timeLeft<=0){clearRoundTimer();makeGuess("timeout");}
+      },50);
     }
-    function beginRound(){ state.screen="playing";state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;render();if(state.mode==="solo")setTimeout(startRoundTimer,0); }
+    function beginRound(){ state.screen="playing";state.guess=null;state.correct=null;state.roundPoints=0;state.roundTier=null;state.timeLeft=ROUND_MS;render();if(state.mode==="solo")setTimeout(startRoundTimer,0); }
     function sortScores(entries){ return [...entries].sort((a,b)=>Number(b.score)-Number(a.score)||Number(a.total_duration_ms)-Number(b.total_duration_ms)||String(a.created_at).localeCompare(String(b.created_at))).slice(0,25); }
     function readLocalScores(){ try{const parsed=JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY)||"[]");return Array.isArray(parsed)?sortScores(parsed):[];}catch{return [];} }
     function saveLocalScore(entry){ try{localStorage.setItem(LOCAL_SCORES_KEY,JSON.stringify(sortScores([...readLocalScores(),entry])));}catch{} }
@@ -440,26 +457,88 @@
         state.submissionId=await response.json();state.submitStatus="saved";await loadLeaderboard();
       }catch(error){console.warn(error);saveLocalScore(entry);state.submissionId=entry.id;state.submitStatus="error";await loadLeaderboard();}
     }
+    function shareStatusText(){
+      return state.shareStatus==="preparing"?"Preparing your share card…":state.shareStatus==="shared"?"Shared!":state.shareStatus==="done"?"Caption copied & image downloaded — post it anywhere.":state.shareStatus==="error"?"Couldn’t share automatically — screenshot this instead.":"";
+    }
+    function roundedRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+    function buildShareCard(kind){
+      const W=1080,H=1350,canvas=document.createElement("canvas");canvas.width=W;canvas.height=H;
+      const ctx=canvas.getContext("2d");
+      const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#07040d");bg.addColorStop(.5,"#12081f");bg.addColorStop(1,"#090611");
+      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="rgba(200,255,61,.1)";ctx.beginPath();ctx.arc(120,H-140,320,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(139,92,246,.16)";ctx.beginPath();ctx.arc(W-100,150,300,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,60,60,W-120,H-120,48);ctx.strokeStyle="rgba(176,76,255,.55)";ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle="#c8ff3d";ctx.font="900 58px Inter, sans-serif";ctx.fillText("HILO",100,180);
+      ctx.fillStyle="#aaa1bc";ctx.font="800 22px Inter, sans-serif";ctx.fillText("HIGHER OR LOWER",100,218);
+      if(kind==="solo"){
+        const p=state.players[0], correctCount=state.correctFlags.filter(Boolean).length;
+        ctx.fillStyle="#f7f5ff";ctx.font="800 30px Inter, sans-serif";ctx.fillText("SOLO SPRINT RESULT",100,340);
+        ctx.fillStyle="#c8ff3d";ctx.font="950 200px Inter, sans-serif";ctx.fillText(formatScore(p.score),96,600);
+        ctx.fillStyle="#aaa1bc";ctx.font="700 30px Inter, sans-serif";ctx.fillText("POINTS",100,650);
+        ctx.fillStyle="#f7f5ff";ctx.font="800 36px Inter, sans-serif";
+        ctx.fillText(`${correctCount}/${state.rounds} correct`,100,760);
+        ctx.fillText(`🔥 ${p.bestStreak} best streak`,100,815);
+        ctx.fillStyle="#8b5cf6";ctx.font="700 28px Inter, sans-serif";ctx.fillText(String(p.name),100,890);
+      }else{
+        const [a,b]=state.players, tied=a.score===b.score, winner=tied?null:(a.score>b.score?a:b);
+        ctx.fillStyle="#f7f5ff";ctx.font="800 30px Inter, sans-serif";ctx.fillText("HEAD-TO-HEAD RESULT",100,340);
+        ctx.fillStyle="#c8ff3d";ctx.font="950 58px Inter, sans-serif";
+        ctx.fillText(tied?"IT'S A TIE":`${String(winner.name).toUpperCase()} WINS`,100,440);
+        ctx.fillStyle="#f7f5ff";ctx.font="950 130px Inter, sans-serif";ctx.fillText(`${a.score} – ${b.score}`,100,620);
+        ctx.fillStyle="#aaa1bc";ctx.font="700 30px Inter, sans-serif";ctx.fillText(`${String(a.name)}  vs  ${String(b.name)}`,100,680);
+      }
+      ctx.fillStyle="#766e85";ctx.font="700 26px Inter, sans-serif";ctx.fillText(SHARE_URL.replace(/^https?:\/\//,""),100,H-100);
+      return canvas;
+    }
+    function canvasToBlob(canvas){ return new Promise(resolve=>canvas.toBlob(resolve,"image/png")); }
+    function shareCaption(kind){
+      if(kind==="solo"){const p=state.players[0];return `I scored ${formatScore(p.score)} points on Hilo's solo sprint (best streak 🔥${p.bestStreak})! Think you can beat it? ${SHARE_URL}`;}
+      const [a,b]=state.players, tied=a.score===b.score, winner=tied?null:(a.score>b.score?a:b), loser=winner===a?b:a;
+      return tied?`${a.name} and ${b.name} just tied it up on Hilo. Rematch? ${SHARE_URL}`:`${winner.name} just beat ${loser.name} ${Math.max(a.score,b.score)}-${Math.min(a.score,b.score)} on Hilo. Challenge them back: ${SHARE_URL}`;
+    }
+    async function shareResults(kind){
+      state.shareStatus="preparing";render();
+      try{
+        const canvas=buildShareCard(kind), blob=await canvasToBlob(canvas), caption=shareCaption(kind), file=blob?new File([blob],"hilo-result.png",{type:"image/png"}):null;
+        if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],text:caption,title:"Hilo"});state.shareStatus="shared";render();return;
+        }
+        if(navigator.share){await navigator.share({text:caption,title:"Hilo",url:SHARE_URL});state.shareStatus="shared";render();return;}
+        if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(caption);
+        if(blob){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="hilo-result.png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);}
+        state.shareStatus="done";render();
+      }catch(error){
+        if(error&&error.name==="AbortError"){state.shareStatus="idle";render();return;}
+        console.warn(error);state.shareStatus="error";render();
+      }
+    }
     function start(){
       clearRoundTimer();state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;
-      state.players=state.mode==="solo"?[{name:cleanName(state.draftNames[0],"Player"),score:0}]:[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
-      state.starter=0;state.deck=makeDeck();state.round=0;state.active=0;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
+      state.players=state.mode==="solo"?[{name:cleanName(state.draftNames[0],"Player"),score:0,streak:0,bestStreak:0}]:[{name:cleanName(state.draftNames[0],"Player 1"),score:0,streak:0,bestStreak:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0,streak:0,bestStreak:0}];
+      state.starter=0;state.deck=makeDeck();state.round=0;state.active=0;state.guess=null;state.correct=null;state.roundPoints=0;state.roundTier=null;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.shareStatus="idle";state.screen="handoff";render();
     }
     function makeGuess(choice){
-      if(state.guess!==null)return;const fact=state.deck[state.round], solo=state.mode==="solo";let elapsed=solo?Math.min(ROUND_MS,Math.max(0,performance.now()-state.roundStartedAt)):0;
+      if(state.guess!==null)return;const fact=state.deck[state.round], solo=state.mode==="solo", player=state.players[solo?0:state.active];
+      let elapsed=solo?Math.min(ROUND_MS,Math.max(0,performance.now()-state.roundStartedAt)):0;
       if(solo&&elapsed>=ROUND_MS)choice="timeout";if(solo)clearRoundTimer();
       const correct=choice!=="timeout"&&(choice==="higher"?fact.target.value>fact.known.value:fact.target.value<fact.known.value);
       state.guess=choice;state.correct=correct;
-      if(solo){state.timeLeft=Math.max(0,ROUND_MS-elapsed);state.roundPoints=pointsFor(elapsed,correct);state.players[0].score+=state.roundPoints;state.answerTimes.push(Math.round(elapsed));state.correctFlags.push(correct);}else if(correct)state.players[state.active].score++;
-      buzz(correct);render();
+      const newStreak=correct?player.streak+1:0, tier=correct?streakTier(newStreak):null;
+      const basePoints=solo?pointsFor(elapsed,correct):(correct?1:0);
+      const points=correct?Math.round(basePoints*(tier?(solo?tier.mult:1):1))+(!solo&&tier?tier.bonus:0):0;
+      player.score+=points;player.streak=newStreak;player.bestStreak=Math.max(player.bestStreak,newStreak);
+      state.roundPoints=points;state.roundTier=tier;
+      if(solo){state.timeLeft=Math.max(0,ROUND_MS-elapsed);state.answerTimes.push(Math.round(elapsed));state.correctFlags.push(correct);}
+      buzz(correct?(tier&&newStreak===tier.at?HAPTIC.milestone:HAPTIC.correct):HAPTIC.wrong);render();
     }
     function next(){
       clearRoundTimer();if(state.round+1>=state.rounds){state.screen="results";render();if(state.mode==="solo")void submitSoloScore();return;}
-      state.round++;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;
+      state.round++;state.guess=null;state.correct=null;state.roundPoints=0;state.roundTier=null;state.timeLeft=ROUND_MS;
       if(state.mode==="solo")beginRound();else{state.active=state.active?0:1;state.screen="handoff";render();}
     }
     function rematch(){
-      clearRoundTimer();state.players.forEach(p=>p.score=0);state.starter=state.mode==="solo"?0:(state.starter?0:1);state.deck=makeDeck();state.round=0;state.active=state.starter;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
+      clearRoundTimer();state.players.forEach(p=>{p.score=0;p.streak=0;p.bestStreak=0;});state.starter=state.mode==="solo"?0:(state.starter?0:1);state.deck=makeDeck();state.round=0;state.active=state.starter;state.guess=null;state.correct=null;state.roundPoints=0;state.roundTier=null;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.shareStatus="idle";state.screen="handoff";render();
     }
     function bind(){
       document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
@@ -469,6 +548,7 @@
         if(action==="close-rules"){if(event.target===el||el.classList.contains("close")||el.classList.contains("primary")){state.rules=false;render();}}
         if(action==="ready")beginRound();
         if(action==="next")next(); if(action==="rematch")rematch();
+        if(action==="share")void shareResults(el.dataset.shareKind);
       }));
       document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen="setup";render();if(state.mode==="solo")void loadLeaderboard();}));
       document.querySelectorAll("[data-round]").forEach(el=>el.addEventListener("click",()=>{state.rounds=Number(el.dataset.round);render();}));
