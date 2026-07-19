@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090611">
+  <meta name="description" content="Hilo is a fast pass-the-phone higher or lower game for two players.">
+  <title>Hilo — Higher or Lower</title>
+  <style>
+    :root {
+      --ink:#090611; --panel:#171126; --panel-2:#201336; --lime:#c8ff3d;
+      --violet:#8b5cf6; --bright:#b04cff; --white:#f7f5ff;
+      --muted:#aaa1bc; --danger:#ff5776;
+    }
+    * { box-sizing:border-box; }
+    html { background:var(--ink); color-scheme:dark; }
+    body {
+      margin:0; min-width:320px; min-height:100svh; color:var(--white);
+      background:var(--ink); font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    button,input { font:inherit; }
+    button { -webkit-tap-highlight-color:transparent; }
+    button:focus-visible,input:focus-visible { outline:3px solid var(--lime); outline-offset:3px; }
+    .shell {
+      min-height:100svh; position:relative; overflow:hidden; isolation:isolate;
+      padding-bottom:max(24px,env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 12% 92%,rgba(139,92,246,.22),transparent 30%),
+        radial-gradient(circle at 88% 12%,rgba(176,76,255,.17),transparent 27%),
+        linear-gradient(135deg,#07040d 0%,#10071d 48%,#090611 100%);
+    }
+    .shell::before {
+      content:""; position:fixed; inset:0; z-index:-2; opacity:.22; pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:42px 42px; mask-image:linear-gradient(to bottom,#000,transparent 82%);
+    }
+    .orb { position:fixed; width:380px; height:380px; border-radius:50%; filter:blur(100px); opacity:.13; z-index:-1; pointer-events:none; }
+    .orb.one { top:-180px; left:-110px; background:var(--lime); }
+    .orb.two { bottom:-190px; right:-170px; background:var(--bright); }
+    .topbar {
+      width:min(1360px,calc(100% - 56px)); min-height:88px; margin:auto;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      border-bottom:1px solid rgba(255,255,255,.1); position:relative; z-index:10;
+    }
+    .brand { border:0; padding:10px 0; background:transparent; color:var(--white); cursor:pointer; text-align:left; }
+    .brand strong { display:block; color:var(--lime); font-size:24px; line-height:.9; font-weight:950; letter-spacing:-.055em; }
+    .brand span { color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
+    .ghost {
+      min-height:46px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.045);
+      color:var(--white); border-radius:999px; padding:0 19px; cursor:pointer; font-weight:750;
+      transition:180ms ease;
+    }
+    .ghost:hover { border-color:rgba(200,255,61,.7); background:rgba(200,255,61,.08); }
+    .ghost:active { transform:scale(.97); }
+    .eyebrow { margin:0 0 20px; color:var(--muted); font-size:11px; font-weight:850; letter-spacing:.18em; text-transform:uppercase; display:flex; align-items:center; gap:10px; }
+    .eyebrow i { width:8px; height:8px; border-radius:50%; background:var(--lime); box-shadow:0 0 16px rgba(200,255,61,.85); }
+    h1,.display { text-transform:uppercase; font-weight:950; letter-spacing:-.065em; line-height:.9; }
+    .panel {
+      background:radial-gradient(circle at 85% 10%,rgba(176,76,255,.14),transparent 31%),linear-gradient(145deg,rgba(32,19,54,.96),rgba(18,13,31,.98));
+      border:1px solid rgba(176,76,255,.55); box-shadow:inset 0 1px rgba(255,255,255,.06),0 24px 80px rgba(0,0,0,.35),0 0 38px rgba(139,92,246,.09);
+    }
+    .setup {
+      width:min(1240px,calc(100% - 56px)); min-height:calc(100svh - 88px); margin:auto;
+      padding:64px 0 72px; display:grid; grid-template-columns:minmax(0,1.06fr) minmax(420px,.82fr); align-items:center; gap:86px;
+    }
+    .hero h1 { margin:0; max-width:720px; font-size:clamp(64px,7vw,112px); }
+    .hero h1 span { color:var(--lime); text-shadow:0 0 34px rgba(200,255,61,.23); }
+    .hero-copy { max-width:610px; margin:32px 0 0; color:var(--muted); font-size:18px; line-height:1.65; }
+    .setup-card { border-radius:36px; padding:35px; }
+    .card-title { display:flex; gap:15px; align-items:center; margin-bottom:28px; }
+    .step { width:50px; height:50px; border:1px solid rgba(200,255,61,.46); background:rgba(200,255,61,.08); color:var(--lime); border-radius:15px; display:grid; place-items:center; font-family:ui-monospace,monospace; font-weight:850; }
+    .card-title p { margin:0 0 3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.15em; font-weight:850; }
+    .card-title h2 { margin:0; font-size:25px; }
+    .names { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    label span,.rounds legend { display:block; margin:0 0 8px; color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+    input { width:100%; height:58px; border:1px solid rgba(255,255,255,.13); border-radius:16px; background:rgba(3,2,8,.52); color:var(--white); padding:0 16px; font-size:17px; font-weight:750; }
+    input:focus { border-color:var(--violet); background:rgba(3,2,8,.75); }
+    .rounds { border:0; padding:0; margin:26px 0 29px; }
+    .round-options { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .round-options button { height:50px; border:1px solid rgba(255,255,255,.13); border-radius:14px; background:rgba(3,2,8,.35); color:var(--muted); cursor:pointer; font-weight:850; }
+    .round-options button.selected { border-color:var(--lime); background:var(--lime); color:var(--ink); box-shadow:0 0 24px rgba(200,255,61,.2); }
+    .primary {
+      width:100%; min-height:64px; border:0; border-radius:20px; background:var(--lime); color:#0b0a12;
+      display:flex; align-items:center; justify-content:space-between; padding:0 24px; font-weight:900; font-size:17px;
+      cursor:pointer; box-shadow:0 0 32px rgba(200,255,61,.18); transition:180ms ease;
+    }
+    .primary b { font-size:24px; }
+    .primary:hover { transform:translateY(-2px); filter:brightness(1.05); box-shadow:0 10px 38px rgba(200,255,61,.22); }
+    .primary:active { transform:scale(.98); }
+    .fine { margin:14px 0 0; color:#766e85; text-align:center; font-size:10px; }
+    .center-screen { min-height:calc(100svh - 88px); width:min(780px,calc(100% - 40px)); margin:auto; padding:56px 0 72px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+    .turn-orbit { width:112px; height:112px; margin-bottom:30px; position:relative; border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle,rgba(176,76,255,.28),rgba(9,6,17,.7)); border:1px solid rgba(176,76,255,.72); box-shadow:0 0 45px rgba(176,76,255,.22); }
+    .turn-orbit::before,.turn-orbit::after { content:""; position:absolute; inset:-12px; border-radius:inherit; border:1px solid rgba(200,255,61,.13); }
+    .turn-orbit::after { inset:-24px; border-color:rgba(176,76,255,.09); }
+    .turn-orbit span { color:var(--lime); font-size:44px; font-weight:950; }
+    .center-screen .eyebrow { justify-content:center; }
+    .center-screen h1 { margin:0; font-size:clamp(58px,8vw,100px); }
+    .center-screen h1 strong { color:var(--lime); font-weight:inherit; text-shadow:0 0 32px rgba(200,255,61,.23); }
+    .center-screen > p:not(.eyebrow) { margin:25px auto 0; max-width:590px; color:var(--muted); font-size:17px; line-height:1.6; }
+    .center-action { max-width:330px; margin-top:30px; }
+    .center-screen small { margin-top:17px; color:#746d80; }
+    .game { width:min(1296px,calc(100% - 56px)); min-height:calc(100svh - 88px); margin:auto; padding:38px 0 54px; }
+    .game-head { display:flex; align-items:end; justify-content:space-between; gap:28px; margin-bottom:27px; }
+    .game-head .eyebrow { margin-bottom:11px; }
+    .game-head h1 { margin:0; font-size:clamp(38px,4.1vw,66px); }
+    .scores { flex:0 0 auto; display:flex; padding:5px; border:1px solid rgba(176,76,255,.55); border-radius:999px; background:rgba(15,9,26,.84); box-shadow:0 0 28px rgba(139,92,246,.13); }
+    .score { min-width:146px; min-height:56px; border-radius:999px; padding:7px 16px; display:flex; align-items:center; justify-content:center; gap:15px; color:var(--muted); }
+    .score.active { background:rgba(139,92,246,.18); color:var(--white); box-shadow:inset 0 0 0 1px rgba(176,76,255,.34); }
+    .score span { max-width:84px; overflow:hidden; text-overflow:ellipsis; font-size:11px; font-weight:850; text-transform:uppercase; letter-spacing:.07em; }
+    .score strong { color:var(--lime); font-size:26px; font-variant-numeric:tabular-nums; }
+    .compare { display:grid; grid-template-columns:1fr 78px 1fr; align-items:stretch; }
+    .fact { min-height:440px; border-radius:40px; padding:39px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:radial-gradient(circle at 50% 25%,rgba(139,92,246,.13),transparent 38%),linear-gradient(145deg,rgba(25,18,43,.94),rgba(13,9,23,.98)); box-shadow:0 28px 90px rgba(0,0,0,.32); }
+    .fact.known { border:1px solid rgba(200,255,61,.82); box-shadow:0 0 28px rgba(200,255,61,.09),0 28px 90px rgba(0,0,0,.32); }
+    .fact.mystery { border:1px solid rgba(176,76,255,.75); box-shadow:0 0 32px rgba(176,76,255,.1),0 28px 90px rgba(0,0,0,.32); }
+    .fact.correct { border-color:var(--lime); box-shadow:0 0 40px rgba(200,255,61,.14),0 28px 90px rgba(0,0,0,.32); }
+    .fact.wrong { border-color:var(--danger); box-shadow:0 0 40px rgba(255,87,118,.14),0 28px 90px rgba(0,0,0,.32); }
+    .fact > p { margin:0 0 19px; color:var(--muted); font-size:10px; font-weight:850; letter-spacing:.16em; text-transform:uppercase; }
+    .fact h2 { margin:0; font-size:clamp(38px,4vw,65px); line-height:1; letter-spacing:-.05em; }
+    .number { margin-top:27px; font-size:clamp(76px,8vw,122px); line-height:.95; letter-spacing:-.04em; font-weight:950; font-variant-numeric:tabular-nums; }
+    .number.lime { color:var(--lime); text-shadow:0 0 28px rgba(200,255,61,.22); }
+    .number.violet { color:#c26bff; text-shadow:0 0 28px rgba(176,76,255,.25); }
+    .unit { margin-top:3px; color:var(--muted); font-size:15px; }
+    .vs { width:74px; height:74px; align-self:center; justify-self:center; z-index:2; border-radius:50%; border:1px solid rgba(176,76,255,.9); background:#140b24; display:grid; place-items:center; font-size:23px; font-weight:950; box-shadow:0 0 26px rgba(176,76,255,.42),inset 0 0 18px rgba(176,76,255,.2); }
+    .guess-grid { width:min(100%,440px); margin-top:36px; display:grid; gap:15px; }
+    .guess { min-height:86px; border-radius:25px; padding:0 25px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; text-transform:uppercase; font-size:29px; letter-spacing:-.025em; font-weight:950; transition:180ms ease; }
+    .guess:hover { transform:translateY(-3px); filter:brightness(1.07); }
+    .guess:active { transform:scale(.98); }
+    .guess b { font-size:37px; }
+    .higher { border:1px solid #e7ff9b; background:linear-gradient(115deg,#b8f427,#d7ff68); color:#0b0a12; box-shadow:0 0 28px rgba(200,255,61,.21); }
+    .lower { border:1px solid #cc85ff; background:linear-gradient(115deg,#7928e8,#b129ff); color:var(--white); box-shadow:0 0 28px rgba(176,76,255,.22); }
+    .answer { width:100%; display:flex; flex-direction:column; align-items:center; animation:answer .36s cubic-bezier(.2,.8,.2,1) both; }
+    .chip { margin-top:21px; padding:8px 14px; border-radius:999px; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+    .chip.right { background:rgba(200,255,61,.12); border:1px solid rgba(200,255,61,.45); color:var(--lime); }
+    .chip.miss { background:rgba(255,87,118,.1); border:1px solid rgba(255,87,118,.44); color:#ff8ca3; }
+    .next { width:min(100%,360px); min-height:58px; margin-top:23px; padding:0 18px; border:1px solid rgba(255,255,255,.23); border-radius:18px; background:rgba(255,255,255,.07); color:var(--white); display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-weight:780; }
+    .next:hover { border-color:var(--lime); }
+    .progress { width:min(460px,100%); margin:27px auto 0; text-align:center; }
+    .track { height:4px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.1); }
+    .track i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--violet),var(--lime)); transition:width .5s ease; }
+    .progress p { margin:10px 0 0; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
+    .progress strong { color:var(--lime); }
+    .trophy { width:108px; height:108px; margin-bottom:29px; border-radius:33px; display:grid; place-items:center; background:var(--lime); color:var(--ink); font-size:44px; transform:rotate(5deg); box-shadow:0 0 44px rgba(200,255,61,.22); }
+    .results h1 { color:var(--lime); }
+    .final-scores { width:min(650px,100%); margin-top:34px; padding:9px; border-radius:32px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .final-player { min-width:0; border-radius:24px; padding:24px; }
+    .final-player.winner { background:rgba(200,255,61,.08); box-shadow:inset 0 0 0 1px rgba(200,255,61,.26); }
+    .final-player > span { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.15em; font-weight:850; }
+    .final-player h2 { margin:8px 0 9px; overflow:hidden; text-overflow:ellipsis; font-size:24px; }
+    .final-player strong { display:block; color:var(--lime); font-size:60px; line-height:1; font-weight:950; }
+    .final-player small { color:var(--muted); }
+    .result-actions { width:min(650px,100%); display:grid; grid-template-columns:1.25fr 1fr; gap:12px; margin-top:17px; }
+    .secondary { min-height:64px; border-radius:20px; }
+    .backdrop { position:fixed; inset:0; z-index:50; padding:22px; display:grid; place-items:center; background:rgba(3,2,8,.8); backdrop-filter:blur(12px); animation:fade .18s ease both; }
+    .modal { width:min(540px,100%); position:relative; border-radius:32px; padding:37px; animation:modal .25s cubic-bezier(.2,.8,.2,1) both; }
+    .close { position:absolute; top:16px; right:16px; width:42px; height:42px; border:1px solid rgba(255,255,255,.18); border-radius:50%; background:rgba(255,255,255,.05); color:var(--white); cursor:pointer; font-size:24px; }
+    .modal h2 { margin:0; font-size:50px; text-transform:uppercase; line-height:.9; letter-spacing:-.06em; }
+    .rules-list { list-style:none; padding:0; margin:28px 0; display:grid; gap:11px; }
+    .rules-list li { padding:15px; border:1px solid rgba(255,255,255,.1); border-radius:17px; background:rgba(255,255,255,.035); display:grid; grid-template-columns:90px 1fr; align-items:center; gap:13px; }
+    .rules-list strong { color:var(--lime); text-transform:uppercase; font-size:13px; }
+    .rules-list span { color:var(--muted); font-size:13px; line-height:1.45; }
+    .enter { animation:screen .4s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes screen { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes answer { from { opacity:0; transform:translateY(16px) scale(.96); } to { opacity:1; transform:none; } }
+    @keyframes fade { from { opacity:0; } to { opacity:1; } }
+    @keyframes modal { from { opacity:0; transform:translateY(14px) scale(.97); } to { opacity:1; transform:none; } }
+    @media (max-width:900px) {
+      .setup { grid-template-columns:1fr; gap:44px; padding-top:48px; }
+      .hero { text-align:center; } .hero .eyebrow { justify-content:center; } .hero h1,.hero-copy { margin-left:auto; margin-right:auto; }
+      .game-head { align-items:stretch; flex-direction:column; } .scores { align-self:center; }
+      .compare { grid-template-columns:1fr; grid-template-rows:auto 50px auto; } .vs { width:64px; height:64px; }
+      .fact { min-height:382px; }
+    }
+    @media (max-width:620px) {
+      .topbar { width:calc(100% - 30px); min-height:70px; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+      .brand strong { font-size:22px; } .brand span { font-size:8px; } .ghost { min-height:42px; padding:0 14px; font-size:12px; }
+      .setup { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:36px 0 46px; }
+      .hero h1 { font-size:clamp(50px,16vw,72px); } .hero-copy { margin-top:23px; font-size:15px; }
+      .setup-card { border-radius:26px; padding:22px; } .names { grid-template-columns:1fr; } .card-title { margin-bottom:23px; }
+      .center-screen { min-height:calc(100svh - 70px); padding:36px 0 48px; }
+      .turn-orbit { width:90px; height:90px; } .turn-orbit span { font-size:37px; }
+      .center-screen h1 { font-size:clamp(52px,16vw,78px); }
+      .game { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:26px 0 42px; }
+      .game-head { margin-bottom:19px; } .game-head h1 { font-size:37px; }
+      .scores { width:100%; } .score { width:50%; min-width:0; min-height:50px; gap:8px; padding:6px 9px; }
+      .score span { max-width:73px; } .score strong { font-size:22px; }
+      .fact { min-height:294px; padding:27px 19px; border-radius:28px; } .fact.known { min-height:260px; }
+      .fact > p { margin-bottom:12px; } .fact h2 { font-size:39px; } .number { margin-top:20px; font-size:70px; }
+      .unit { font-size:12px; } .compare { grid-template-rows:auto 41px auto; } .vs { width:56px; height:56px; font-size:18px; }
+      .guess-grid { margin-top:24px; grid-template-columns:1fr 1fr; gap:9px; }
+      .guess { min-height:70px; border-radius:19px; padding:0 14px; font-size:22px; } .guess b { font-size:27px; }
+      .progress { margin-top:21px; }
+      .final-player { padding:20px 9px; } .final-player h2 { font-size:18px; } .final-player strong { font-size:48px; }
+      .result-actions { grid-template-columns:1fr; } .secondary { min-height:54px; }
+      .modal { border-radius:26px; padding:29px 19px 21px; } .modal h2 { font-size:40px; }
+      .rules-list li { grid-template-columns:72px 1fr; padding:12px; }
+    }
+    @media (max-width:390px) { .guess-grid { grid-template-columns:1fr; } .fact.known { min-height:242px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+  <main id="app"></main>
+  <div id="modal-root"></div>
+  <script>
+    const FACTS = [
+      ["Landmark height",["Eiffel Tower",330,"330","meters"],["Empire State",381,"381","meters to roof"]],
+      ["Mountain height",["Mount Everest",8849,"8,849","meters"],["K2",8611,"8,611","meters"]],
+      ["Worlds in space",["The Moon",3475,"3,475","km wide"],["Mercury",4879,"4,879","km wide"]],
+      ["Ocean area",["Pacific Ocean",165.2,"165.2M","square km"],["Atlantic Ocean",106.5,"106.5M","square km"]],
+      ["How many?",["Adult human bones",206,"206","bones"],["Piano keys",88,"88","keys"]],
+      ["Game pieces",["Playing card deck",52,"52","cards"],["Chessboard",64,"64","squares"]],
+      ["Field length",["Soccer pitch",105,"105","meters"],["Football field",109.7,"109.7","meters incl. end zones"]],
+      ["Top speed",["Cheetah",120,"120","km/h"],["Greyhound",72,"72","km/h"]],
+      ["Length",["Blue whale",30,"30","meters"],["Basketball court",28.65,"28.65","meters"]],
+      ["Distance",["Marathon",42.195,"42.2","km"],["English Channel",33.3,"33.3","km at narrowest"]],
+      ["Sports height",["NBA hoop",3.05,"3.05","meters"],["Men’s volleyball net",2.43,"2.43","meters"]],
+      ["Epic distance",["Great Wall",21196,"21,196","km total"],["Earth’s diameter",12742,"12,742","km"]],
+      ["Space distance",["Earth to Moon",384400,"384,400","km average"],["Around the Earth",40075,"40,075","km"]],
+      ["Length of a year",["Mercury",88,"88","Earth days"],["Mars",687,"687","Earth days"]],
+      ["Pregnancy length",["Camel",13,"13","months"],["Elephant",22,"22","months"]],
+      ["Melting point",["Gold",1064,"1,064°","Celsius"],["Iron",1538,"1,538°","Celsius"]],
+      ["Tower height",["Statue of Liberty",93,"93","meters, ground to torch"],["Big Ben tower",96,"96","meters"]],
+      ["Times per day",["Heart beats",100000,"100K","roughly"],["Eye blinks",15000,"15K","roughly"]],
+      ["On the map",["U.S. states",50,"50","states"],["African countries",54,"54","UN members"]],
+      ["Length",["Olympic pool",50,"50","meters"],["Boeing 747-8",76.3,"76.3","meters"]]
+    ];
+    const state = {
+      screen:"setup", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
+      active:0, guess:null, correct:null, rules:false
+    };
+    const app = document.getElementById("app");
+    const modalRoot = document.getElementById("modal-root");
+    const esc = value => String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+    const cleanName = (value,fallback) => value.trim().slice(0,14) || fallback;
+    const shuffle = list => { const copy=[...list]; for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];} return copy; };
+    const buzz = correct => { if(navigator.vibrate) navigator.vibrate(correct?45:[45,45,80]); };
+
+    function header(){
+      return `<header class="topbar"><button class="brand" data-action="home" aria-label="Hilo home"><strong>HILO</strong><span>Higher or lower</span></button><button class="ghost" data-action="rules">How to play</button></header>`;
+    }
+    function shell(content){
+      return `<div class="shell"><div class="orb one"></div><div class="orb two"></div>${header()}${content}</div>`;
+    }
+    function setupView(){
+      return shell(`<section class="setup enter" aria-labelledby="setup-title">
+        <div class="hero"><p class="eyebrow"><i></i>Two players · one phone</p><h1 id="setup-title">Trust your gut.<br><span>Then talk trash.</span></h1><p class="hero-copy">Guess whether the hidden number is higher or lower. Take turns, rack up points, and settle the argument like adults. Sort of.</p></div>
+        <form class="setup-card panel" id="setup-form"><div class="card-title"><span class="step">01</span><div><p>Game setup</p><h2>Who’s playing?</h2></div></div>
+          <div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div>
+          <fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>
+          <button class="primary" type="submit">Start game <b aria-hidden="true">→</b></button><p class="fine">No login. No ads. No funny business.</p>
+        </form></section>`);
+    }
+    function handoffView(){
+      const player=state.players[state.active]; const other=state.players[state.active?0:1];
+      return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>${state.round+1}</span></div><p class="eyebrow"><i></i>Round ${state.round+1} of ${state.rounds}</p><h1 id="handoff-title">Pass it to<br><strong>${esc(player.name)}</strong></h1><p>No peeking. Your turn starts when you tap ready.</p><button class="primary center-action" data-action="ready">I’m ready <b aria-hidden="true">→</b></button>${state.round?`<small>${esc(other.name)} just finished their turn.</small>`:""}</section>`);
+    }
+    function gameView(){
+      const fact=state.deck[state.round], left=fact[1], right=fact[2], player=state.players[state.active], other=state.players[state.active?0:1];
+      const reveal=state.guess!==null;
+      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><div><p class="eyebrow"><i></i>${esc(fact[0])}</p><h1 id="game-title">Which one has the bigger number?</h1></div><div class="scores" aria-label="Scores">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${p.score}</strong></div>`).join("")}</div></div>
+        <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left[0])}</h2><div class="number lime">${esc(left[2])}</div><span class="unit">${esc(left[3])}</span></article><div class="vs" aria-hidden="true">VS</div>
+          <article class="fact mystery ${reveal?(state.correct?"correct":"wrong"):""}"><p>${reveal?(state.correct?"Nice call":"Not quite"):"Your guess"}</p><h2>${esc(right[0])}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right[2])}</div><span class="unit">${esc(right[3])}</span><div class="chip ${state.correct?"right":"miss"}">${state.correct?"+1 point":"No point"}</div><button class="next" data-action="next">${state.round+1>=state.rounds?"See final score":`Pass to ${esc(other.name)}`}<span aria-hidden="true">→</span></button></div>`:`<div class="guess-grid"><button class="guess higher" data-guess="higher"><span>Higher</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess="lower"><span>Lower</span><b aria-hidden="true">↓</b></button></div>`}</article></div>
+        <div class="progress" aria-label="Round ${state.round+1} of ${state.rounds}"><div class="track"><i style="width:${((state.round+1)/state.rounds)*100}%"></i></div><p>Round <strong>${state.round+1}</strong> of ${state.rounds} · ${esc(player.name)}’s turn</p></div></section>`);
+    }
+    function resultsView(){
+      const tied=state.players[0].score===state.players[1].score; const winner=tied?null:(state.players[0].score>state.players[1].score?state.players[0]:state.players[1]);
+      return shell(`<section class="center-screen results enter" aria-labelledby="results-title"><p class="eyebrow"><i></i>Final score</p><div class="trophy" aria-hidden="true">★</div><h1 id="results-title">${tied?"It’s a tie!":`${esc(winner.name)} wins!`}</h1><p>${tied?"Dead even. There’s only one responsible choice: run it back.":"The numbers have spoken. Bragging rights are now legally binding."}</p>
+        <div class="final-scores panel">${state.players.map(p=>{const won=!tied&&p===winner;return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${p.score}</strong><small>points</small></div>`}).join("")}</div>
+        <div class="result-actions"><button class="primary" data-action="rematch">Run it back <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change players</button></div></section>`);
+    }
+    function rulesView(){
+      if(!state.rules){modalRoot.innerHTML="";return;}
+      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Look</strong><span>One number is shown. The other stays hidden.</span></li><li><strong>Guess</strong><span>Tap higher or lower before your confidence disappears.</span></li><li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li></ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
+    }
+    function render(){
+      app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="playing"?gameView():resultsView();
+      rulesView(); bind();
+    }
+    function start(){
+      state.players=[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
+      state.deck=shuffle(FACTS).slice(0,state.rounds); state.round=0; state.active=0; state.guess=null; state.correct=null; state.screen="handoff"; render();
+    }
+    function makeGuess(choice){
+      if(state.guess!==null)return; const fact=state.deck[state.round], correct=choice==="higher"?fact[2][1]>fact[1][1]:fact[2][1]<fact[1][1];
+      state.guess=choice; state.correct=correct; if(correct)state.players[state.active].score++; buzz(correct); render();
+    }
+    function next(){
+      if(state.round+1>=state.rounds){state.screen="results";render();return;}
+      state.round++; state.active=state.active?0:1; state.guess=null; state.correct=null; state.screen="handoff"; render();
+    }
+    function rematch(){ state.players.forEach(p=>p.score=0); state.deck=shuffle(FACTS).slice(0,state.rounds); state.round=0; state.active=0; state.guess=null; state.correct=null; state.screen="handoff"; render(); }
+    function bind(){
+      document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
+        const action=el.dataset.action;
+        if(action==="home"){state.screen="setup";state.rules=false;render();}
+        if(action==="rules"){state.rules=true;render();}
+        if(action==="close-rules"){if(event.target===el||el.classList.contains("close")||el.classList.contains("primary")){state.rules=false;render();}}
+        if(action==="ready"){state.screen="playing";render();}
+        if(action==="next")next(); if(action==="rematch")rematch();
+      }));
+      document.querySelectorAll("[data-round]").forEach(el=>el.addEventListener("click",()=>{state.rounds=Number(el.dataset.round);render();}));
+      document.querySelectorAll("[data-guess]").forEach(el=>el.addEventListener("click",()=>makeGuess(el.dataset.guess)));
+      const form=document.getElementById("setup-form"); if(form){
+        const one=document.getElementById("player-one"),two=document.getElementById("player-two");
+        one.addEventListener("input",()=>state.draftNames[0]=one.value); two.addEventListener("input",()=>state.draftNames[1]=two.value);
+        form.addEventListener("submit",event=>{event.preventDefault();state.draftNames=[one.value,two.value];start();});
+      }
+    }
+    render();
+  </script>
+</body>
+</html>
