@@ -521,6 +521,11 @@
     const streakTier = streak => STREAK_TIERS.reduce((best,tier)=>streak>=tier.at?tier:best,null);
     const HAPTIC = { correct:[40], wrong:[45,50,90], milestone:[30,45,30,45,70], urgent:[25] };
     const CONFIG = window.HILO_CONFIG || {};
+    // Display names containing any of these tokens are hidden from the board and blocked from submission. Add more as needed.
+    const BLOCKED_NAME_TOKENS = ["hitler"];
+    const normalizeName = value => String(value||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const isBlockedName = value => { const n=normalizeName(value); return BLOCKED_NAME_TOKENS.some(token=>n.includes(token)); };
+    const filterBoard = entries => Array.isArray(entries)?entries.filter(entry=>!isBlockedName(entry&&entry.player_name)):[];
     const state = {
       screen:"setup", mode:"solo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
       active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
@@ -583,8 +588,8 @@
     function soloResultsView(){
       const score=state.players[0].score, correct=state.correctFlags.filter(Boolean).length, totalTime=state.answerTimes.reduce((sum,value)=>sum+value,0), average=state.answerTimes.length?totalTime/state.answerTimes.length:0;
       const verdict=score>=8500?"Lightning brain. Questionably human.":score>=6500?"Fast, accurate, and now extremely annoying to compete with.":score>=4000?"Solid run. The leaderboard has officially been warned.":"A respectable warm-up. Run it back and trust the first instinct.";
-      const statusText=state.submitStatus==="submitting"?"Submitting your run…":state.submitStatus==="saved"?"Score added to the global leaderboard.":state.submitStatus==="local"?"Score saved on this phone. Connect Supabase to make it global.":state.submitStatus==="error"?"The global board could not be reached; your score was saved on this phone.":"Preparing your result…";
-      const statusClass=state.submitStatus==="saved"?"good":state.submitStatus==="error"?"warn":"";
+      const statusText=state.submitStatus==="submitting"?"Submitting your run…":state.submitStatus==="saved"?"Score added to the global leaderboard.":state.submitStatus==="local"?"Score saved on this phone. Connect Supabase to make it global.":state.submitStatus==="blocked"?"That display name isn’t allowed on the leaderboard.":state.submitStatus==="error"?"The global board could not be reached; your score was saved on this phone.":"Preparing your result…";
+      const statusClass=state.submitStatus==="saved"?"good":state.submitStatus==="error"||state.submitStatus==="blocked"?"warn":"";
       return shell(`<section class="solo-results enter" aria-labelledby="results-title"><div class="solo-result-card panel"><p class="eyebrow"><i></i>Solo sprint complete</p><h1 id="results-title">${formatScore(score)}</h1><p>${verdict}</p><div class="solo-stats"><div class="solo-stat"><strong>${correct}/${state.rounds}</strong><span>Correct</span></div><div class="solo-stat"><strong>${(average/1000).toFixed(1)}s</strong><span>Avg answer</span></div><div class="solo-stat"><strong>🔥${state.players[0].bestStreak}</strong><span>Best streak</span></div></div><p class="submission-status ${statusClass}" aria-live="polite">${statusText}</p><div class="solo-actions"><button class="primary" data-action="rematch">Run it again <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change mode</button></div><button class="ghost share-btn" data-action="share" data-share-kind="solo">Share result <b aria-hidden="true">↗</b></button><p class="submission-status ${state.shareStatus==="error"?"warn":state.shareStatus==="shared"||state.shareStatus==="done"?"good":""}" aria-live="polite">${shareStatusText()}</p></div>${leaderboardView()}</section>`);
     }
     function resultsView(){
@@ -625,16 +630,18 @@
     function refreshLeaderboardView(){ if(state.mode==="solo"&&(state.screen==="setup"||state.screen==="results"))render(); }
     async function loadLeaderboard(){
       state.leaderboardStatus="loading";refreshLeaderboardView();
-      if(!supabaseReady()){state.leaderboard=readLocalScores();state.leaderboardStatus="local";refreshLeaderboardView();return;}
+      if(!supabaseReady()){state.leaderboard=filterBoard(readLocalScores());state.leaderboardStatus="local";refreshLeaderboardView();return;}
       try{
         const response=await fetch(`${supabaseBase()}/rest/v1/solo_scores?select=id,player_name,score,correct_answers,total_duration_ms,created_at&order=score.desc,total_duration_ms.asc,created_at.asc&limit=25`,{headers:supabaseHeaders()});
         if(!response.ok)throw new Error(`Leaderboard request failed (${response.status})`);
-        state.leaderboard=await response.json();state.leaderboardStatus="ready";
-      }catch(error){console.warn(error);state.leaderboard=readLocalScores();state.leaderboardStatus="error";}
+        state.leaderboard=filterBoard(await response.json());state.leaderboardStatus="ready";
+      }catch(error){console.warn(error);state.leaderboard=filterBoard(readLocalScores());state.leaderboardStatus="error";}
       refreshLeaderboardView();
     }
     async function submitSoloScore(){
-      if(state.scoreSubmitted)return;state.scoreSubmitted=true;state.submitStatus="submitting";render();
+      if(state.scoreSubmitted)return;
+      if(isBlockedName(state.players[0].name)){state.scoreSubmitted=true;state.submissionId=null;state.submitStatus="blocked";await loadLeaderboard();return;}
+      state.scoreSubmitted=true;state.submitStatus="submitting";render();
       const totalDuration=state.answerTimes.reduce((sum,value)=>sum+value,0), entry={id:`local-${Date.now()}`,player_name:state.players[0].name,score:state.players[0].score,correct_answers:state.correctFlags.filter(Boolean).length,total_duration_ms:totalDuration,created_at:new Date().toISOString()};
       if(!supabaseReady()){saveLocalScore(entry);state.submissionId=entry.id;state.submitStatus="local";await loadLeaderboard();return;}
       try{
