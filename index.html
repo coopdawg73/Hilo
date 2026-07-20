@@ -222,6 +222,9 @@
     .leaderboard-score { color:var(--lime); font-size:15px; font-weight:950; font-variant-numeric:tabular-nums; }
     .leaderboard-empty { padding:22px 10px; color:var(--muted); text-align:center; font-size:12px; }
     .leaderboard-foot { margin:13px 0 0; color:#766e85; text-align:center; font-size:9px; }
+    .games-played { margin-top:14px; padding:22px 25px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+    .games-played-label { color:var(--muted); font-size:11px; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+    .games-played-count { color:var(--lime); font-size:28px; font-weight:950; font-variant-numeric:tabular-nums; text-shadow:0 0 24px rgba(200,255,61,.2); }
     .backdrop { position:fixed; inset:0; z-index:50; padding:22px; display:grid; place-items:center; background:rgba(3,2,8,.8); backdrop-filter:blur(12px); animation:fade .18s ease both; }
     .modal { width:min(540px,100%); position:relative; border-radius:32px; padding:37px; animation:modal .25s cubic-bezier(.2,.8,.2,1) both; }
     .close { position:absolute; top:16px; right:16px; width:42px; height:42px; border:1px solid rgba(255,255,255,.18); border-radius:50%; background:rgba(255,255,255,.05); color:var(--white); cursor:pointer; font-size:24px; }
@@ -274,6 +277,7 @@
       .solo-stats { grid-template-columns:1fr 1fr 1fr; } .solo-stat { padding:14px 5px; } .solo-stat strong { font-size:18px; }
       .solo-actions { grid-template-columns:1fr; }
       .leaderboard { padding:20px 14px; border-radius:24px; } .leaderboard-head { align-items:start; } .leaderboard-head h2 { font-size:21px; }
+      .games-played { padding:18px 16px; border-radius:20px; } .games-played-count { font-size:23px; }
       .modal { border-radius:26px; padding:29px 19px 21px; } .modal h2 { font-size:40px; }
       .rules-list li { grid-template-columns:72px 1fr; padding:12px; }
     }
@@ -525,7 +529,7 @@
       screen:"setup", mode:"solo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
       active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
       timerId:null, roundPoints:0, roundTier:null, urgentBuzzed:false, answerTimes:[], correctFlags:[],
-      leaderboard:[], leaderboardStatus:"idle", submitStatus:"idle", scoreSubmitted:false, submissionId:null,
+      leaderboard:[], leaderboardStatus:"idle", gamesPlayed:null, submitStatus:"idle", scoreSubmitted:false, submissionId:null,
       shareStatus:"idle"
     };
     const app = document.getElementById("app");
@@ -553,7 +557,8 @@
       const rows=state.leaderboard.map((entry,index)=>`<div class="leaderboard-row ${entry.id&&entry.id===state.submissionId?"current":""}"><span class="leaderboard-rank">${String(index+1).padStart(2,"0")}</span><span class="leaderboard-name">${esc(entry.player_name)}</span><strong class="leaderboard-score">${formatScore(entry.score)}</strong></div>`).join("");
       const empty=loading?"Loading the fastest minds…":state.leaderboardStatus==="error"?"The leaderboard database still needs its one-time setup.":live?"No ranked runs yet. You could be first.":"Finish a solo run to set the pace on this phone.";
       const foot=state.leaderboardStatus==="error"?"Showing scores saved on this phone until Supabase setup is complete.":live?"Scores are ranked by points, then total answer time.":"Connect Supabase to turn this into the live global board.";
-      return `<section class="leaderboard panel" aria-labelledby="leaderboard-title"><div class="leaderboard-head"><div><p>${live?"Worldwide rankings":"This-device preview"}</p><h2 id="leaderboard-title">${live?"Global leaderboard":"Leaderboard preview"}</h2></div><span>Top ${Math.max(10,state.leaderboard.length)}<br>10-round runs</span></div><div class="leaderboard-list">${rows||`<div class="leaderboard-empty">${empty}</div>`}</div><p class="leaderboard-foot">${foot}</p></section>`;
+      const gamesPlayedText=state.gamesPlayed==null?"—":formatScore(state.gamesPlayed);
+      return `<section class="leaderboard panel" aria-labelledby="leaderboard-title"><div class="leaderboard-head"><div><p>${live?"Worldwide rankings":"This-device preview"}</p><h2 id="leaderboard-title">${live?"Global leaderboard":"Leaderboard preview"}</h2></div><span>Top 25<br>10-round runs</span></div><div class="leaderboard-list">${rows||`<div class="leaderboard-empty">${empty}</div>`}</div><p class="leaderboard-foot">${foot}</p></section><section class="games-played panel" aria-label="Total games played"><span class="games-played-label">Games played</span><strong class="games-played-count">${gamesPlayedText}</strong></section>`;
     }
     function setupView(){
       const solo=state.mode==="solo";
@@ -625,12 +630,18 @@
     function refreshLeaderboardView(){ if(state.mode==="solo"&&(state.screen==="setup"||state.screen==="results"))render(); }
     async function loadLeaderboard(){
       state.leaderboardStatus="loading";refreshLeaderboardView();
-      if(!supabaseReady()){state.leaderboard=readLocalScores();state.leaderboardStatus="local";refreshLeaderboardView();return;}
+      if(!supabaseReady()){state.leaderboard=readLocalScores();state.gamesPlayed=state.leaderboard.length;state.leaderboardStatus="local";refreshLeaderboardView();return;}
       try{
-        const response=await fetch(`${supabaseBase()}/rest/v1/solo_scores?select=id,player_name,score,correct_answers,total_duration_ms,created_at&order=score.desc,total_duration_ms.asc,created_at.asc&limit=25`,{headers:supabaseHeaders()});
-        if(!response.ok)throw new Error(`Leaderboard request failed (${response.status})`);
-        state.leaderboard=await response.json();state.leaderboardStatus="ready";
-      }catch(error){console.warn(error);state.leaderboard=readLocalScores();state.leaderboardStatus="error";}
+        const [scoresResponse,countResponse]=await Promise.all([
+          fetch(`${supabaseBase()}/rest/v1/solo_scores?select=id,player_name,score,correct_answers,total_duration_ms,created_at&order=score.desc,total_duration_ms.asc,created_at.asc&limit=25`,{headers:supabaseHeaders()}),
+          fetch(`${supabaseBase()}/rest/v1/solo_scores?select=id&limit=1`,{headers:{...supabaseHeaders(),Prefer:"count=exact"}})
+        ]);
+        if(!scoresResponse.ok)throw new Error(`Leaderboard request failed (${scoresResponse.status})`);
+        state.leaderboard=await scoresResponse.json();
+        const range=countResponse.headers.get("content-range");
+        state.gamesPlayed=range?Number(range.split("/")[1])||0:null;
+        state.leaderboardStatus="ready";
+      }catch(error){console.warn(error);state.leaderboard=readLocalScores();state.gamesPlayed=state.leaderboard.length;state.leaderboardStatus="error";}
       refreshLeaderboardView();
     }
     async function submitSoloScore(){
