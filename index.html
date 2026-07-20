@@ -86,9 +86,31 @@
     .hero-copy { max-width:610px; margin:32px 0 0; color:var(--muted); font-size:18px; line-height:1.65; }
     .setup-side { min-width:0; display:grid; gap:16px; }
     .setup-card { border-radius:36px; padding:35px; }
-    .mode-switch { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:28px; padding:5px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(3,2,8,.42); }
-    .mode-switch button { min-height:48px; border:0; border-radius:13px; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+    .mode-switch { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:28px; padding:5px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(3,2,8,.42); }
+    .mode-switch button { min-height:48px; border:0; border-radius:13px; background:transparent; color:var(--muted); cursor:pointer; font-size:11px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; padding:0 4px; }
     .mode-switch button.selected { background:linear-gradient(115deg,var(--lime),#dcff79); color:var(--ink); box-shadow:0 0 24px rgba(200,255,61,.16); }
+    .crown-board { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0 0 22px; }
+    .crown-chip { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(3,2,8,.4); font-size:11px; font-weight:800; color:var(--muted); }
+    .crown-chip i { width:10px; height:10px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 8px currentColor; }
+    .crown-chip.owned { color:var(--white); border-color:rgba(255,255,255,.32); }
+    .crown-chip .owner { font-size:9px; text-transform:uppercase; letter-spacing:.06em; opacity:.85; }
+    .wheel-stage { display:flex; flex-direction:column; align-items:center; gap:24px; }
+    .wheel-frame { position:relative; width:min(300px,78vw); aspect-ratio:1; }
+    .wheel-pointer { position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:13px solid transparent; border-right:13px solid transparent; border-top:21px solid var(--lime); z-index:3; filter:drop-shadow(0 0 10px rgba(200,255,61,.55)); }
+    .wheel { position:relative; width:100%; height:100%; border-radius:50%; border:6px solid rgba(255,255,255,.14); box-shadow:0 0 0 1px rgba(255,255,255,.05),0 30px 80px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.35); transition:transform 3.4s cubic-bezier(.12,.72,.15,1); will-change:transform; }
+    .wheel-hub { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:36%; height:36%; border-radius:50%; background:var(--ink); border:1px solid rgba(255,255,255,.2); box-shadow:0 0 22px rgba(0,0,0,.55); display:grid; place-items:center; z-index:2; }
+    .wheel-hub button { width:100%; height:100%; border-radius:50%; border:0; background:linear-gradient(145deg,var(--lime),#dcff79); color:var(--ink); font-weight:950; font-size:14px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer; }
+    .wheel-hub button:disabled { opacity:.55; cursor:default; }
+    .wheel-legend { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:420px; }
+    .wheel-result { color:var(--lime); font-size:15px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; min-height:22px; }
+    .powerup-tray { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:20px 0 0; width:min(100%,440px); }
+    .powerup-btn { position:relative; min-height:64px; border-radius:16px; border:1px solid rgba(255,255,255,.16); background:rgba(3,2,8,.4); color:var(--white); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:9px; font-weight:850; text-transform:uppercase; letter-spacing:.03em; transition:150ms ease; }
+    .powerup-btn span.icon { font-size:18px; }
+    .powerup-btn .count { position:absolute; top:5px; right:7px; font-size:9px; color:var(--muted); font-weight:900; }
+    .powerup-btn:hover:not(:disabled) { border-color:rgba(200,255,61,.6); }
+    .powerup-btn.armed { border-color:var(--lime); background:rgba(200,255,61,.14); box-shadow:0 0 18px rgba(200,255,61,.18); }
+    .powerup-btn:disabled { opacity:.35; cursor:default; }
+    .hint-chip { margin-top:14px; padding:8px 14px; border-radius:999px; background:rgba(139,92,246,.16); border:1px solid rgba(139,92,246,.5); color:#d3b8ff; font-size:11px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; display:inline-block; }
     .card-title { display:flex; gap:15px; align-items:center; margin-bottom:28px; }
     .step { width:50px; height:50px; border:1px solid rgba(200,255,61,.46); background:rgba(200,255,61,.08); color:var(--lime); border-radius:15px; display:grid; place-items:center; font-family:ui-monospace,monospace; font-weight:850; }
     .card-title p { margin:0 0 3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.15em; font-weight:850; }
@@ -246,7 +268,9 @@
       .setup { width:calc(100% - 28px); min-height:calc(100svh - 70px); padding:36px 0 46px; }
       .hero h1 { font-size:clamp(50px,16vw,72px); } .hero-copy { margin-top:23px; font-size:15px; }
       .setup-card { border-radius:26px; padding:22px; } .names { grid-template-columns:1fr; } .card-title { margin-bottom:23px; }
-      .mode-switch { margin-bottom:22px; }
+      .mode-switch { margin-bottom:22px; } .mode-switch button { font-size:9px; min-height:44px; }
+      .wheel-frame { width:min(240px,72vw); } .powerup-tray { gap:6px; } .powerup-btn { min-height:56px; font-size:8px; } .powerup-btn span.icon { font-size:15px; }
+      .crown-chip { font-size:10px; padding:6px 10px 6px 8px; }
       .center-screen { min-height:calc(100svh - 70px); padding:36px 0 48px; }
       .turn-orbit { width:90px; height:90px; } .turn-orbit span { font-size:37px; }
       .center-screen h1 { font-size:clamp(52px,16vw,78px); }
@@ -438,6 +462,30 @@
       fact("Tower weight","heavier",item("Space Shuttle","a Space Shuttle at launch",2030,"2,030","tonnes"),item("Blue whale","a blue whale",150,"150","tonnes")),
       fact("Fruit size","heavier",item("Watermelon","an average watermelon",9,"9","kg"),item("Pineapple","an average pineapple",1.5,"1.5","kg"))
     ];
+    const CATEGORIES = [
+      {key:"size",label:"Size & Scale",color:"#38bdf8",crownTopic:"Landmark height"},
+      {key:"distance",label:"Distance",color:"#fb923c",crownTopic:"Space distance"},
+      {key:"speed",label:"Speed",color:"#f472b6",crownTopic:"Fastest dive"},
+      {key:"counting",label:"Counting",color:"#4ade80",crownTopic:"Bones vs keys"},
+      {key:"weight",label:"Weight",color:"#facc15",crownTopic:"Heavy animals"},
+      {key:"time",label:"Time & Age",color:"#8b5cf6",crownTopic:"Cosmic age"},
+      {key:"heat",label:"Heat",color:"#ff5776",crownTopic:"What's hotter"},
+      {key:"sound",label:"Sound & Food",color:"#22d3ee",crownTopic:"Loud machines"}
+    ];
+    const TYPE_CATEGORY = {
+      taller:"size",wider:"size",area:"size",higher:"size",deeper:"size",
+      longer:"distance",distance:"distance",
+      faster:"speed",
+      count:"counting",population:"counting",
+      heavier:"weight",
+      duration:"time",older:"time",frequency:"time",
+      temperature:"heat",hotter:"heat",
+      louder:"sound",caloric:"sound"
+    };
+    const factsForCategory = key => FACTS.filter(f=>TYPE_CATEGORY[f.type]===key);
+    const crownFactForCategory = key => { const cat=CATEGORIES.find(c=>c.key===key); return FACTS.find(f=>f.topic===cat.crownTopic); };
+    const CROWN_ROUND_MS = 12000;
+    const CROWN_POWERUP_LIMIT = 2;
     const ROUND_MS = 14000;
     const SOLO_ROUNDS = 10;
     const LOCAL_SCORES_KEY = "hilo-solo-scores-v1";
@@ -446,7 +494,11 @@
       screen:"setup", mode:"solo", draftNames:["Coop","Friend"], rounds:10, players:[], deck:[], round:0,
       active:0, starter:0, guess:null, correct:null, rules:false, roundStartedAt:0, timeLeft:ROUND_MS,
       timerId:null, roundPoints:0, answerTimes:[], correctFlags:[], leaderboard:[], leaderboardStatus:"idle",
-      submitStatus:"idle", scoreSubmitted:false, submissionId:null
+      submitStatus:"idle", scoreSubmitted:false, submissionId:null,
+      crownOwner:{}, crownPowerUps:[], crownCategory:null, crownFact:null, crownIsChallenge:false,
+      crownArmedDouble:false, crownGuess:null, crownCorrect:null, crownPoints:0, crownHint:null,
+      crownTimeLeft:CROWN_ROUND_MS, crownRoundMs:CROWN_ROUND_MS, crownTimerId:null, crownRoundStartedAt:0, crownTurnNo:0,
+      crownSpinning:false, crownWheelRotation:0, crownWinner:null, crownWonThisTurn:false
     };
     const app = document.getElementById("app");
     const modalRoot = document.getElementById("modal-root");
@@ -476,17 +528,26 @@
       return `<section class="leaderboard panel" aria-labelledby="leaderboard-title"><div class="leaderboard-head"><div><p>${live?"Worldwide rankings":"This-device preview"}</p><h2 id="leaderboard-title">${live?"Global leaderboard":"Leaderboard preview"}</h2></div><span>Top ${Math.max(10,state.leaderboard.length)}<br>10-round runs</span></div><div class="leaderboard-list">${rows||`<div class="leaderboard-empty">${empty}</div>`}</div><p class="leaderboard-foot">${foot}</p></section>`;
     }
     function setupView(){
-      const solo=state.mode==="solo";
+      const mode=state.mode, solo=mode==="solo", crown=mode==="crown";
+      const eyebrow=solo?"Solo sprint · global glory":crown?"Two players · crown rush":"Two players · one phone";
+      const heroTitle=solo?`Fourteen seconds.<br><span>Make it count.</span>`:crown?`Spin it.<br><span>Steal the crown.</span>`:`Trust your gut.<br><span>Then talk trash.</span>`;
+      const heroCopy=solo?"Race through 10 questions. A correct instant answer is worth 1,000 points; hesitate and the clock eats your score.":crown?"Spin for a category, answer before the clock runs out, and steal its crown before your rival does. Sweep every crown to win outright — or hold the most once the board fills up.":"Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor.";
+      const modeBtn=(key,label)=>`<button type="button" data-mode="${key}" class="${mode===key?"selected":""}" aria-pressed="${mode===key}">${label}</button>`;
+      const categoryPreview=`<div class="wheel-legend">${CATEGORIES.map(c=>`<span class="crown-chip"><i style="color:${c.color};background:${c.color}"></i>${esc(c.label)}</span>`).join("")}</div>`;
+      const body=solo?`<div class="names"><label><span>Leaderboard name</span><input id="player-one" maxlength="14" autocomplete="nickname" value="${esc(state.draftNames[0])}"></label></div><div class="solo-facts"><div class="solo-fact"><strong>10</strong><span>Questions</span></div><div class="solo-fact"><strong>14s</strong><span>Each</span></div><div class="solo-fact"><strong>10K</strong><span>Max score</span></div></div>`
+        :crown?`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div>${categoryPreview}<p class="fine" style="margin-top:16px;">8 categories · 2 of each power-up per player · first to sweep every crown wins</p>`
+        :`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div><fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>`;
       return shell(`<section class="setup enter" aria-labelledby="setup-title">
-        <div class="hero"><p class="eyebrow"><i></i>${solo?"Solo sprint · global glory":"Two players · one phone"}</p><h1 id="setup-title">${solo?`Fourteen seconds.<br><span>Make it count.</span>`:`Trust your gut.<br><span>Then talk trash.</span>`}</h1><p class="hero-copy">${solo?"Race through 10 questions. A correct instant answer is worth 1,000 points; hesitate and the clock eats your score.":"Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor."}</p></div>
-        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode"><button type="button" data-mode="solo" class="${solo?"selected":""}" aria-pressed="${solo}">Solo sprint</button><button type="button" data-mode="duo" class="${solo?"":"selected"}" aria-pressed="${!solo}">Two players</button></div><div class="card-title"><span class="step">${solo?"⚡":"01"}</span><div><p>${solo?"Ranked challenge":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
-          ${solo?`<div class="names"><label><span>Leaderboard name</span><input id="player-one" maxlength="14" autocomplete="nickname" value="${esc(state.draftNames[0])}"></label></div><div class="solo-facts"><div class="solo-fact"><strong>10</strong><span>Questions</span></div><div class="solo-fact"><strong>14s</strong><span>Each</span></div><div class="solo-fact"><strong>10K</strong><span>Max score</span></div></div>`:`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div><fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>`}
-          <button class="primary" type="submit">${solo?"Start ranked run":"Start game"} <b aria-hidden="true">→</b></button>${solo?`<p class="public-note">Your display name and final score will appear publicly when the global board is connected.</p>`:`<p class="fine">No login. No ads. No funny business.</p>`}
+        <div class="hero"><p class="eyebrow"><i></i>${eyebrow}</p><h1 id="setup-title">${heroTitle}</h1><p class="hero-copy">${heroCopy}</p></div>
+        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode">${modeBtn("solo","Solo sprint")}${modeBtn("duo","Two players")}${modeBtn("crown","Crown Wheel")}</div><div class="card-title"><span class="step">${solo?"⚡":crown?"👑":"01"}</span><div><p>${solo?"Ranked challenge":crown?"Party mode":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
+          ${body}
+          <button class="primary" type="submit">${solo?"Start ranked run":crown?"Start crown rush":"Start game"} <b aria-hidden="true">→</b></button>${solo?`<p class="public-note">Your display name and final score will appear publicly when the global board is connected.</p>`:`<p class="fine">No login. No ads. No funny business.</p>`}
         </form>${solo?leaderboardView():""}</div></section>`);
     }
     function handoffView(){
       const player=state.players[state.active]; const other=state.players[state.active?0:1];
       if(state.mode==="solo") return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>14</span></div><p class="eyebrow"><i></i>10 questions · 14 seconds each</p><h1 id="handoff-title">Ready,<br><strong>${esc(player.name)}?</strong></h1><p>The timer starts the moment you tap. Correct answers begin at 1,000 points and lose value every millisecond.</p><button class="primary center-action" data-action="ready">Start the clock <b aria-hidden="true">→</b></button><small>Accuracy matters. Speed makes legends.</small></section>`);
+      if(state.mode==="crown") return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>👑</span></div><p class="eyebrow"><i></i>Turn ${state.crownTurnNo+1}</p><h1 id="handoff-title">Pass it to<br><strong>${esc(player.name)}</strong></h1><p>No peeking. Spin the wheel when you’re ready.</p><button class="primary center-action" data-action="ready">I’m ready <b aria-hidden="true">→</b></button>${state.crownTurnNo?`<small>${esc(other.name)} just finished their turn.</small>`:""}</section>`);
       return shell(`<section class="center-screen enter" aria-labelledby="handoff-title"><div class="turn-orbit" aria-hidden="true"><span>${state.round+1}</span></div><p class="eyebrow"><i></i>Round ${state.round+1} of ${state.rounds}</p><h1 id="handoff-title">Pass it to<br><strong>${esc(player.name)}</strong></h1><p>No peeking. Your turn starts when you tap ready.</p><button class="primary center-action" data-action="ready">I’m ready <b aria-hidden="true">→</b></button>${state.round?`<small>${esc(other.name)} just finished their turn.</small>`:""}</section>`);
     }
     function gameView(){
@@ -509,18 +570,68 @@
     }
     function resultsView(){
       if(state.mode==="solo") return soloResultsView();
+      if(state.mode==="crown") return crownResultsView();
       const tied=state.players[0].score===state.players[1].score; const winner=tied?null:(state.players[0].score>state.players[1].score?state.players[0]:state.players[1]);
       return shell(`<section class="center-screen results enter" aria-labelledby="results-title"><p class="eyebrow"><i></i>Final score</p><div class="trophy" aria-hidden="true">★</div><h1 id="results-title">${tied?"It’s a tie!":`${esc(winner.name)} wins!`}</h1><p>${tied?"Dead even. There’s only one responsible choice: run it back.":"The numbers have spoken. Bragging rights are now legally binding."}</p>
         <div class="final-scores panel">${state.players.map(p=>{const won=!tied&&p===winner;return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${p.score}</strong><small>points</small></div>`}).join("")}</div>
         <div class="result-actions"><button class="primary" data-action="rematch">Run it back <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change players</button></div></section>`);
     }
+    const crownOwned = key => Object.prototype.hasOwnProperty.call(state.crownOwner,key);
+    function crownChip(c){
+      const owned=crownOwned(c.key);
+      return `<span class="crown-chip ${owned?"owned":""}"><i style="color:${c.color};background:${c.color}"></i>${esc(c.label)}${owned?` <span class="owner">· ${esc(state.players[state.crownOwner[c.key]].name)}</span>`:""}</span>`;
+    }
+    function wheelView(){
+      const active=state.players[state.active];
+      const n=CATEGORIES.length, step=360/n;
+      const gradient=`conic-gradient(${CATEGORIES.map((c,i)=>`${c.color} ${i*step}deg ${(i+1)*step}deg`).join(",")})`;
+      const landed=state.crownCategory?CATEGORIES.find(c=>c.key===state.crownCategory):null;
+      return shell(`<section class="center-screen enter" aria-labelledby="wheel-title"><p class="eyebrow"><i></i>${esc(active.name)}’s spin</p><h1 id="wheel-title" style="font-size:clamp(40px,6vw,64px);">Spin for<br><span style="color:var(--lime)">a category</span></h1>
+        <div class="wheel-stage" style="margin-top:8px;">
+          <div class="wheel-frame"><div class="wheel-pointer" aria-hidden="true"></div><div class="wheel" id="crown-wheel" style="background:${gradient};transform:rotate(${state.crownWheelRotation}deg)"></div><div class="wheel-hub"><button type="button" data-action="spin" ${state.crownSpinning?"disabled":""}>${state.crownSpinning?"…":"Spin"}</button></div></div>
+          <p class="wheel-result" id="wheel-result" aria-live="polite">${landed?`Landed on ${esc(landed.label)}!`:""}</p>
+          <div class="wheel-legend">${CATEGORIES.map(crownChip).join("")}</div>
+        </div>
+      </section>`);
+    }
+    function crownGameView(){
+      const player=state.players[state.active], other=state.players[state.active?0:1];
+      const f=state.crownFact, left=f.known, right=f.target, choices=QUESTION_TYPES[f.type], cat=CATEGORIES.find(c=>c.key===state.crownCategory);
+      const reveal=state.crownGuess!==null, rightAnswer=right.value>left.value?choices.up:choices.down, seconds=(state.crownTimeLeft/1000).toFixed(1);
+      const wallet=state.crownPowerUps[state.active];
+      const scoreBoard=`<div class="scores" aria-label="Scores">${state.players.map((p,i)=>`<div class="score ${i===state.active?"active":""}"><span>${esc(p.name)}</span><strong>${formatScore(p.score)}</strong></div>`).join("")}</div>`;
+      const statusWord=state.crownGuess==="timeout"?"Time’s up":state.crownGuess==="skip"?"Skipped":"Locked in";
+      const timer=`<div class="timer ${state.crownTimeLeft<=2500?"urgent":""}" id="crown-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="${Math.round(state.crownRoundMs/1000)}" aria-valuenow="${seconds}"><span>${reveal?statusWord:"Time left"}</span><strong><span id="crown-timer-number">${seconds}</span><small>s</small></strong><div class="timer-track"><i id="crown-timer-fill" style="width:${(state.crownTimeLeft/state.crownRoundMs)*100}%"></i></div></div>`;
+      const powerupTray=`<div class="powerup-tray" role="group" aria-label="Power-ups">
+        <button type="button" class="powerup-btn ${state.crownArmedDouble?"armed":""}" data-powerup="double" ${reveal||state.crownArmedDouble||wallet.double<=0?"disabled":""}><span class="icon">2×</span>Double<span class="count">${wallet.double}</span></button>
+        <button type="button" class="powerup-btn" data-powerup="extra" ${reveal||wallet.extra<=0?"disabled":""}><span class="icon">⏱</span>+6s<span class="count">${wallet.extra}</span></button>
+        <button type="button" class="powerup-btn" data-powerup="fifty" ${reveal||state.crownHint||wallet.fifty<=0?"disabled":""}><span class="icon">?</span>Hint<span class="count">${wallet.fifty}</span></button>
+        <button type="button" class="powerup-btn" data-powerup="skip" ${reveal||wallet.skip<=0?"disabled":""}><span class="icon">⏭</span>Skip<span class="count">${wallet.skip}</span></button>
+      </div>`;
+      return shell(`<section class="game enter" aria-labelledby="game-title"><div class="game-head"><p class="eyebrow"><i></i>${esc(cat.label)}${state.crownIsChallenge?" · CROWN CHALLENGE":""}</p><div class="solo-meta">${timer}${scoreBoard}</div></div>
+        <div class="crown-board" aria-label="Crown standings">${CATEGORIES.map(crownChip).join("")}</div>
+        <div class="question-banner"><span class="question-label">${esc(player.name)}’s turn${state.crownIsChallenge?" · Crown at stake":""}</span><h1 id="game-title">${questionFor(f)}</h1></div>
+        <div class="compare"><article class="fact known"><p>Known</p><h2>${esc(left.name)}</h2><div class="number lime">${esc(left.display)}</div><span class="unit">${esc(left.unit)}</span></article><div class="vs" aria-hidden="true">VS</div>
+          <article class="fact mystery ${reveal?(state.crownCorrect?"correct":"wrong"):""}"><p>${reveal?(state.crownGuess==="timeout"?"Time’s up":state.crownGuess==="skip"?"Skipped":state.crownCorrect?"Nice call":"Not quite"):"Choose for this"}</p><h2>${esc(right.name)}</h2>${reveal?`<div class="answer" aria-live="polite"><div class="number violet">${esc(right.display)}</div><span class="unit">${esc(right.unit)}</span><div class="chip ${state.crownCorrect?"right":"miss"}">${state.crownCorrect?`+${formatScore(state.crownPoints)} points${state.crownWonThisTurn?" · 👑 Crown claimed!":""}`:`Answer: ${esc(rightAnswer)}`}</div><button class="next" data-action="crown-continue">Pass to ${esc(other.name)}<span aria-hidden="true">→</span></button></div>`:`${state.crownHint?`<div class="hint-chip">${esc(state.crownHint)}</div>`:""}<div class="guess-grid"><button class="guess higher" data-guess-crown="higher"><span>${esc(choices.up)}</span><b aria-hidden="true">↑</b></button><button class="guess lower" data-guess-crown="lower"><span>${esc(choices.down)}</span><b aria-hidden="true">↓</b></button></div>${powerupTray}`}</article></div>
+      </section>`);
+    }
+    function crownResultsView(){
+      const tied=state.crownWinner===null, winner=tied?null:state.players[state.crownWinner];
+      return shell(`<section class="center-screen results enter" aria-labelledby="results-title"><p class="eyebrow"><i></i>Crown rush complete</p><div class="trophy" aria-hidden="true">👑</div><h1 id="results-title">${tied?"It’s a tie!":`${esc(winner.name)} wins!`}</h1><p>${tied?"Dead even on crowns and score. There’s only one responsible choice: run it back.":"The crowns have spoken. Bragging rights are now legally binding."}</p>
+        <div class="crown-board" aria-label="Final crown standings">${CATEGORIES.map(crownChip).join("")}</div>
+        <div class="final-scores panel">${state.players.map((p,i)=>{const won=!tied&&i===state.crownWinner, crowns=CATEGORIES.filter(c=>state.crownOwner[c.key]===i).length; return `<div class="final-player ${won?"winner":""}"><span>${won?"Winner":"Player"}</span><h2>${esc(p.name)}</h2><strong>${crowns}</strong><small>crowns · ${formatScore(p.score)} pts</small></div>`;}).join("")}</div>
+        <div class="result-actions"><button class="primary" data-action="crown-rematch">Run it back <b aria-hidden="true">↻</b></button><button class="ghost secondary" data-action="home">Change players</button></div></section>`);
+    }
     function rulesView(){
       if(!state.rules){modalRoot.innerHTML="";return;}
-      const solo=state.mode==="solo";
-      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li>${solo?`<li><strong>Race</strong><span>You get 14 seconds. Correct answers start at 1,000 points and lose value as time passes.</span></li>`:`<li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li>`}</ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
+      const solo=state.mode==="solo", crown=state.mode==="crown";
+      const thirdRule=solo?`<li><strong>Race</strong><span>You get 14 seconds. Correct answers start at 1,000 points and lose value as time passes.</span></li>`
+        :crown?`<li><strong>Spin</strong><span>Spin the wheel for a category. Landing on one whose crown is unclaimed puts that crown up for grabs this turn.</span></li><li><strong>Power up</strong><span>Each player gets 2 uses of Double, +6s, Hint, and Skip for the match.</span></li><li><strong>Win</strong><span>Sweep every crown to win instantly, or hold the most once every crown is claimed.</span></li>`
+        :`<li><strong>Pass</strong><span>Score a point for a correct guess, then hand over the phone.</span></li>`;
+      modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li>${thirdRule}</ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
     }
     function render(){
-      app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="playing"?gameView():resultsView();
+      app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="wheel"?wheelView():state.screen==="playing"?(state.mode==="crown"?crownGameView():gameView()):resultsView();
       rulesView(); bind();
     }
     function clearRoundTimer(){ if(state.timerId){clearInterval(state.timerId);state.timerId=null;} }
@@ -559,9 +670,17 @@
       }catch(error){console.warn(error);saveLocalScore(entry);state.submissionId=entry.id;state.submitStatus="error";await loadLeaderboard();}
     }
     function start(){
-      clearRoundTimer();state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;
+      clearRoundTimer();clearCrownTimer();state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;
       state.players=state.mode==="solo"?[{name:cleanName(state.draftNames[0],"Player"),score:0}]:[{name:cleanName(state.draftNames[0],"Player 1"),score:0},{name:cleanName(state.draftNames[1],"Player 2"),score:0}];
-      state.starter=0;state.deck=makeDeck();state.round=0;state.active=0;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
+      state.starter=0;state.deck=state.mode==="crown"?[]:makeDeck();state.round=0;state.active=0;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";
+      if(state.mode==="crown"){
+        state.crownOwner={};
+        state.crownPowerUps=[0,1].map(()=>({double:CROWN_POWERUP_LIMIT,extra:CROWN_POWERUP_LIMIT,fifty:CROWN_POWERUP_LIMIT,skip:CROWN_POWERUP_LIMIT}));
+        state.crownTurnNo=0;state.crownCategory=null;state.crownFact=null;state.crownIsChallenge=false;state.crownArmedDouble=false;
+        state.crownGuess=null;state.crownCorrect=null;state.crownPoints=0;state.crownHint=null;state.crownRoundMs=CROWN_ROUND_MS;state.crownTimeLeft=CROWN_ROUND_MS;
+        state.crownWinner=null;state.crownWonThisTurn=false;state.crownWheelRotation=0;state.crownSpinning=false;
+      }
+      state.screen="handoff";render();
     }
     function makeGuess(choice){
       if(state.guess!==null)return;const fact=state.deck[state.round], solo=state.mode==="solo";let elapsed=solo?Math.min(ROUND_MS,Math.max(0,performance.now()-state.roundStartedAt)):0;
@@ -579,18 +698,110 @@
     function rematch(){
       clearRoundTimer();state.players.forEach(p=>p.score=0);state.starter=state.mode==="solo"?0:(state.starter?0:1);state.deck=makeDeck();state.round=0;state.active=state.starter;state.guess=null;state.correct=null;state.roundPoints=0;state.timeLeft=ROUND_MS;state.answerTimes=[];state.correctFlags=[];state.scoreSubmitted=false;state.submissionId=null;state.submitStatus="idle";state.screen="handoff";render();
     }
+    function clearCrownTimer(){ if(state.crownTimerId){clearInterval(state.crownTimerId);state.crownTimerId=null;} }
+    function updateCrownTimerDisplay(){
+      const timer=document.getElementById("crown-timer"), number=document.getElementById("crown-timer-number"), fill=document.getElementById("crown-timer-fill");
+      if(!timer||!number||!fill)return;
+      const seconds=(state.crownTimeLeft/1000).toFixed(1); number.textContent=seconds; fill.style.width=`${(state.crownTimeLeft/state.crownRoundMs)*100}%`; timer.setAttribute("aria-valuenow",seconds); timer.classList.toggle("urgent",state.crownTimeLeft<=2500);
+    }
+    function startCrownTimer(){
+      clearCrownTimer(); state.crownRoundStartedAt=performance.now(); state.crownTimeLeft=state.crownRoundMs; updateCrownTimerDisplay();
+      state.crownTimerId=setInterval(()=>{state.crownTimeLeft=Math.max(0,state.crownRoundMs-(performance.now()-state.crownRoundStartedAt));updateCrownTimerDisplay();if(state.crownTimeLeft<=0){clearCrownTimer();crownGuess("timeout");}},50);
+    }
+    function pickCrownCategory(){ return CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)].key; }
+    function buildCrownFact(categoryKey){
+      const isChallenge=!crownOwned(categoryKey);
+      const crownSrc=crownFactForCategory(categoryKey);
+      const pool=factsForCategory(categoryKey).filter(f=>f!==crownSrc);
+      const source=isChallenge?crownSrc:(shuffle(pool)[0]||crownSrc);
+      const order=Math.random()<.5?source.items:[...source.items].reverse();
+      return {fact:{...source,known:order[0],target:order[1]},isChallenge};
+    }
+    function spinWheel(){
+      if(state.crownSpinning)return;
+      const category=pickCrownCategory(), idx=CATEGORIES.findIndex(c=>c.key===category), wedge=360/CATEGORIES.length, center=idx*wedge+wedge/2;
+      const prev=state.crownWheelRotation, remainder=(((-center-prev)%360)+360)%360, target=prev+5*360+remainder;
+      state.crownSpinning=true; state.crownCategory=null; render();
+      const wheelEl=document.getElementById("crown-wheel");
+      requestAnimationFrame(()=>{ if(wheelEl) wheelEl.style.transform=`rotate(${target}deg)`; });
+      setTimeout(()=>{
+        state.crownSpinning=false; state.crownWheelRotation=target; state.crownCategory=category;
+        const built=buildCrownFact(category);
+        state.crownFact=built.fact; state.crownIsChallenge=built.isChallenge;
+        state.crownGuess=null; state.crownCorrect=null; state.crownPoints=0; state.crownHint=null; state.crownArmedDouble=false; state.crownWonThisTurn=false;
+        state.crownRoundMs=CROWN_ROUND_MS; state.crownTimeLeft=CROWN_ROUND_MS; state.screen="playing"; render();
+        setTimeout(startCrownTimer,0);
+      },3450);
+    }
+    function crownGuess(choice){
+      if(state.crownGuess!==null)return; clearCrownTimer();
+      const f=state.crownFact;
+      const correct=choice!=="timeout"&&(choice==="higher"?f.target.value>f.known.value:f.target.value<f.known.value);
+      state.crownGuess=choice; state.crownCorrect=correct;
+      let points=0, crownWon=false;
+      if(correct){ points=100; if(state.crownIsChallenge){ points+=500; crownWon=true; } if(state.crownArmedDouble) points*=2; }
+      state.crownPoints=points; state.crownWonThisTurn=crownWon;
+      state.players[state.active].score+=points;
+      if(crownWon) state.crownOwner[state.crownCategory]=state.active;
+      buzz(correct); render();
+    }
+    function crownSkip(){
+      if(state.crownGuess!==null)return; const wallet=state.crownPowerUps[state.active]; if(wallet.skip<=0)return;
+      clearCrownTimer(); wallet.skip--; state.crownGuess="skip"; state.crownCorrect=false; state.crownPoints=0; state.crownWonThisTurn=false; render();
+    }
+    function crownUsePowerUp(kind){
+      if(state.crownGuess!==null)return; const wallet=state.crownPowerUps[state.active]; if(!wallet||wallet[kind]<=0)return;
+      if(kind==="skip"){ crownSkip(); return; }
+      if(kind==="double"){ if(state.crownArmedDouble)return; wallet.double--; state.crownArmedDouble=true; render(); return; }
+      if(kind==="extra"){ wallet.extra--; state.crownRoundMs+=6000; render(); return; }
+      if(kind==="fifty"){
+        if(state.crownHint)return; wallet.fifty--;
+        const f=state.crownFact, hi=Math.max(f.known.value,f.target.value), lo=Math.max(1,Math.min(f.known.value,f.target.value));
+        state.crownHint=(hi/lo)<1.35?"Photo finish — it’s razor close.":"Not close — there’s a big gap.";
+        render();
+      }
+    }
+    function crownContinue(){
+      clearCrownTimer(); state.crownTurnNo++;
+      const sweep=CATEGORIES.every(c=>state.crownOwner[c.key]===state.active);
+      const allClaimed=CATEGORIES.every(c=>crownOwned(c.key));
+      if(sweep||allClaimed){
+        if(sweep) state.crownWinner=state.active;
+        else{
+          const counts=[0,1].map(i=>CATEGORIES.filter(c=>state.crownOwner[c.key]===i).length);
+          state.crownWinner=counts[0]===counts[1]?(state.players[0].score===state.players[1].score?null:(state.players[0].score>state.players[1].score?0:1)):(counts[0]>counts[1]?0:1);
+        }
+        state.screen="results"; render(); return;
+      }
+      state.active=state.active?0:1; state.crownCategory=null; state.crownFact=null; state.crownGuess=null; state.crownCorrect=null; state.crownPoints=0; state.crownHint=null; state.crownArmedDouble=false;
+      state.screen="handoff"; render();
+    }
+    function crownRematch(){
+      clearCrownTimer(); state.players.forEach(p=>p.score=0);
+      state.crownOwner={};
+      state.crownPowerUps=[0,1].map(()=>({double:CROWN_POWERUP_LIMIT,extra:CROWN_POWERUP_LIMIT,fifty:CROWN_POWERUP_LIMIT,skip:CROWN_POWERUP_LIMIT}));
+      state.starter=state.starter?0:1; state.active=state.starter; state.crownTurnNo=0;
+      state.crownCategory=null; state.crownFact=null; state.crownGuess=null; state.crownCorrect=null; state.crownPoints=0; state.crownHint=null; state.crownArmedDouble=false;
+      state.crownWinner=null; state.crownWonThisTurn=false; state.crownWheelRotation=0; state.crownRoundMs=CROWN_ROUND_MS; state.crownTimeLeft=CROWN_ROUND_MS;
+      state.screen="handoff"; render();
+    }
     function bind(){
       document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
         const action=el.dataset.action;
-        if(action==="home"){clearRoundTimer();state.screen="setup";state.rules=false;render();if(state.mode==="solo")void loadLeaderboard();}
+        if(action==="home"){clearRoundTimer();clearCrownTimer();state.screen="setup";state.rules=false;render();if(state.mode==="solo")void loadLeaderboard();}
         if(action==="rules"){state.rules=true;render();}
         if(action==="close-rules"){if(event.target===el||el.classList.contains("close")||el.classList.contains("primary")){state.rules=false;render();}}
-        if(action==="ready")beginRound();
+        if(action==="ready"){if(state.mode==="crown"){state.screen="wheel";render();}else beginRound();}
         if(action==="next")next(); if(action==="rematch")rematch();
+        if(action==="spin")spinWheel();
+        if(action==="crown-continue")crownContinue();
+        if(action==="crown-rematch")crownRematch();
       }));
-      document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen="setup";render();if(state.mode==="solo")void loadLeaderboard();}));
+      document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();clearCrownTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen="setup";render();if(state.mode==="solo")void loadLeaderboard();}));
       document.querySelectorAll("[data-round]").forEach(el=>el.addEventListener("click",()=>{state.rounds=Number(el.dataset.round);render();}));
       document.querySelectorAll("[data-guess]").forEach(el=>el.addEventListener("click",()=>makeGuess(el.dataset.guess)));
+      document.querySelectorAll("[data-guess-crown]").forEach(el=>el.addEventListener("click",()=>crownGuess(el.dataset.guessCrown)));
+      document.querySelectorAll("[data-powerup]").forEach(el=>el.addEventListener("click",()=>crownUsePowerUp(el.dataset.powerup)));
       const form=document.getElementById("setup-form"); if(form){
         const one=document.getElementById("player-one"),two=document.getElementById("player-two");
         one.addEventListener("input",()=>state.draftNames[0]=one.value);if(two)two.addEventListener("input",()=>state.draftNames[1]=two.value);
