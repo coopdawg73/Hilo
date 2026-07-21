@@ -86,8 +86,8 @@
     .hero-copy { max-width:610px; margin:32px 0 0; color:var(--muted); font-size:18px; line-height:1.65; }
     .setup-side { min-width:0; display:grid; gap:16px; }
     .setup-card { border-radius:36px; padding:35px; }
-    .mode-switch { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:28px; padding:5px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(3,2,8,.42); }
-    .mode-switch button { min-height:48px; border:0; border-radius:13px; background:transparent; color:var(--muted); cursor:pointer; font-size:11px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; padding:0 4px; }
+    .mode-switch { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:28px; padding:5px; border:1px solid rgba(255,255,255,.12); border-radius:18px; background:rgba(3,2,8,.42); }
+    .mode-switch button { min-height:48px; border:0; border-radius:13px; background:transparent; color:var(--muted); cursor:pointer; font-size:10px; font-weight:900; letter-spacing:.03em; text-transform:uppercase; padding:0 3px; }
     .mode-switch button.selected { background:linear-gradient(115deg,var(--lime),#dcff79); color:var(--ink); box-shadow:0 0 24px rgba(200,255,61,.16); }
     .crown-board { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0 0 22px; }
     .crown-chip { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(3,2,8,.4); font-size:11px; font-weight:800; color:var(--muted); }
@@ -111,6 +111,21 @@
     .powerup-btn.armed { border-color:var(--lime); background:rgba(200,255,61,.14); box-shadow:0 0 18px rgba(200,255,61,.18); }
     .powerup-btn:disabled { opacity:.35; cursor:default; }
     .hint-chip { margin-top:14px; padding:8px 14px; border-radius:999px; background:rgba(139,92,246,.16); border:1px solid rgba(139,92,246,.5); color:#d3b8ff; font-size:11px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; display:inline-block; }
+    .match-list { display:grid; gap:8px; margin:18px 0 0; }
+    .match-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border:1px solid rgba(255,255,255,.1); border-radius:16px; background:rgba(3,2,8,.32); cursor:pointer; text-align:left; color:var(--white); width:100%; }
+    .match-row:hover { border-color:rgba(200,255,61,.4); }
+    .match-row h3 { margin:0; font-size:14px; font-weight:850; }
+    .match-row small { display:block; margin-top:3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; }
+    .match-badge { flex:0 0 auto; padding:6px 12px; border-radius:999px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; }
+    .match-badge.your-turn { background:rgba(200,255,61,.14); border:1px solid rgba(200,255,61,.5); color:var(--lime); }
+    .match-badge.waiting { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); color:var(--muted); }
+    .match-badge.done { background:rgba(176,76,255,.12); border:1px solid rgba(176,76,255,.42); color:#cf82ff; }
+    .match-empty { padding:26px 14px; text-align:center; color:var(--muted); font-size:12px; border:1px dashed rgba(255,255,255,.16); border-radius:16px; }
+    .invite-code { margin:22px 0; padding:20px; border-radius:20px; background:rgba(3,2,8,.5); border:1px solid rgba(200,255,61,.35); text-align:center; }
+    .invite-code strong { display:block; font-size:38px; letter-spacing:.12em; color:var(--lime); font-family:ui-monospace,monospace; }
+    .invite-code span { display:block; margin-top:6px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.12em; }
+    .remote-error { margin:14px 0 0; padding:12px 16px; border-radius:14px; background:rgba(255,87,118,.1); border:1px solid rgba(255,87,118,.4); color:#ff8ca3; font-size:12px; }
+    .remote-note { margin:14px 0 0; color:#8d849c; text-align:center; font-size:11px; line-height:1.5; }
     .card-title { display:flex; gap:15px; align-items:center; margin-bottom:28px; }
     .step { width:50px; height:50px; border:1px solid rgba(200,255,61,.46); background:rgba(200,255,61,.08); color:var(--lime); border-radius:15px; display:grid; place-items:center; font-family:ui-monospace,monospace; font-weight:850; }
     .card-title p { margin:0 0 3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.15em; font-weight:850; }
@@ -527,19 +542,22 @@
       const foot=state.leaderboardStatus==="error"?"Showing scores saved on this phone until Supabase setup is complete.":live?"Scores are ranked by points, then total answer time.":"Connect Supabase to turn this into the live global board.";
       return `<section class="leaderboard panel" aria-labelledby="leaderboard-title"><div class="leaderboard-head"><div><p>${live?"Worldwide rankings":"This-device preview"}</p><h2 id="leaderboard-title">${live?"Global leaderboard":"Leaderboard preview"}</h2></div><span>Top ${Math.max(10,state.leaderboard.length)}<br>10-round runs</span></div><div class="leaderboard-list">${rows||`<div class="leaderboard-empty">${empty}</div>`}</div><p class="leaderboard-foot">${foot}</p></section>`;
     }
+    function modeSwitchBar(){
+      const modeBtn=(key,label)=>`<button type="button" data-mode="${key}" class="${state.mode===key?"selected":""}" aria-pressed="${state.mode===key}">${label}</button>`;
+      return `<div class="mode-switch" aria-label="Game mode">${modeBtn("solo","Solo sprint")}${modeBtn("duo","Two players")}${modeBtn("crown","Crown Wheel")}${modeBtn("remote","Remote")}</div>`;
+    }
     function setupView(){
       const mode=state.mode, solo=mode==="solo", crown=mode==="crown";
       const eyebrow=solo?"Solo sprint · global glory":crown?"Two players · crown rush":"Two players · one phone";
       const heroTitle=solo?`Fourteen seconds.<br><span>Make it count.</span>`:crown?`Spin it.<br><span>Steal the crown.</span>`:`Trust your gut.<br><span>Then talk trash.</span>`;
       const heroCopy=solo?"Race through 10 questions. A correct instant answer is worth 1,000 points; hesitate and the clock eats your score.":crown?"Spin for a category, answer before the clock runs out, and steal its crown before your rival does. Sweep every crown to win outright — or hold the most once the board fills up.":"Every round asks a clear new comparison. Pick taller, faster, more—or the opposite—then pass the phone and defend your honor.";
-      const modeBtn=(key,label)=>`<button type="button" data-mode="${key}" class="${mode===key?"selected":""}" aria-pressed="${mode===key}">${label}</button>`;
       const categoryPreview=`<div class="wheel-legend">${CATEGORIES.map(c=>`<span class="crown-chip"><i style="color:${c.color};background:${c.color}"></i>${esc(c.label)}</span>`).join("")}</div>`;
       const body=solo?`<div class="names"><label><span>Leaderboard name</span><input id="player-one" maxlength="14" autocomplete="nickname" value="${esc(state.draftNames[0])}"></label></div><div class="solo-facts"><div class="solo-fact"><strong>10</strong><span>Questions</span></div><div class="solo-fact"><strong>14s</strong><span>Each</span></div><div class="solo-fact"><strong>10K</strong><span>Max score</span></div></div>`
         :crown?`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div>${categoryPreview}<p class="fine" style="margin-top:16px;">8 categories · 2 of each power-up per player · first to sweep every crown wins</p>`
         :`<div class="names"><label><span>Player one</span><input id="player-one" maxlength="14" autocomplete="off" value="${esc(state.draftNames[0])}"></label><label><span>Player two</span><input id="player-two" maxlength="14" autocomplete="off" value="${esc(state.draftNames[1])}"></label></div><fieldset class="rounds"><legend>Number of rounds</legend><div class="round-options">${[6,10,14].map(n=>`<button type="button" data-round="${n}" class="${state.rounds===n?"selected":""}" aria-pressed="${state.rounds===n}">${n}</button>`).join("")}</div></fieldset>`;
       return shell(`<section class="setup enter" aria-labelledby="setup-title">
         <div class="hero"><p class="eyebrow"><i></i>${eyebrow}</p><h1 id="setup-title">${heroTitle}</h1><p class="hero-copy">${heroCopy}</p></div>
-        <div class="setup-side"><form class="setup-card panel" id="setup-form"><div class="mode-switch" aria-label="Game mode">${modeBtn("solo","Solo sprint")}${modeBtn("duo","Two players")}${modeBtn("crown","Crown Wheel")}</div><div class="card-title"><span class="step">${solo?"⚡":crown?"👑":"01"}</span><div><p>${solo?"Ranked challenge":crown?"Party mode":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
+        <div class="setup-side"><form class="setup-card panel" id="setup-form">${modeSwitchBar()}<div class="card-title"><span class="step">${solo?"⚡":crown?"👑":"01"}</span><div><p>${solo?"Ranked challenge":crown?"Party mode":"Game setup"}</p><h2>${solo?"Enter the arena":"Who’s playing?"}</h2></div></div>
           ${body}
           <button class="primary" type="submit">${solo?"Start ranked run":crown?"Start crown rush":"Start game"} <b aria-hidden="true">→</b></button>${solo?`<p class="public-note">Your display name and final score will appear publicly when the global board is connected.</p>`:`<p class="fine">No login. No ads. No funny business.</p>`}
         </form>${solo?leaderboardView():""}</div></section>`);
@@ -631,7 +649,7 @@
       modalRoot.innerHTML=`<div class="backdrop" data-action="close-rules"><section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="rules-title"><button class="close" data-action="close-rules" aria-label="Close rules">×</button><p class="eyebrow"><i></i>The rules</p><h2 id="rules-title">Easy to learn.<br>Dangerous to lose.</h2><ol class="rules-list"><li><strong>Read</strong><span>Every turn asks a fresh comparison in the big question box.</span></li><li><strong>Choose</strong><span>Tap the natural answer: taller, faster, more—or its opposite.</span></li>${thirdRule}</ol><button class="primary" data-action="close-rules">Got it <b>✓</b></button></section></div>`;
     }
     function render(){
-      app.innerHTML=state.screen==="setup"?setupView():state.screen==="handoff"?handoffView():state.screen==="wheel"?wheelView():state.screen==="playing"?(state.mode==="crown"?crownGameView():gameView()):resultsView();
+      app.innerHTML=state.screen==="setup"?setupView():state.screen==="remote"?(typeof remoteRouterView==="function"?remoteRouterView():"<p>Loading remote play…</p>"):state.screen==="handoff"?handoffView():state.screen==="wheel"?wheelView():state.screen==="playing"?(state.mode==="crown"?crownGameView():gameView()):resultsView();
       rulesView(); bind();
     }
     function clearRoundTimer(){ if(state.timerId){clearInterval(state.timerId);state.timerId=null;} }
@@ -788,7 +806,7 @@
     function bind(){
       document.querySelectorAll("[data-action]").forEach(el=>el.addEventListener("click",event=>{
         const action=el.dataset.action;
-        if(action==="home"){clearRoundTimer();clearCrownTimer();state.screen="setup";state.rules=false;render();if(state.mode==="solo")void loadLeaderboard();}
+        if(action==="home"){clearRoundTimer();clearCrownTimer();state.screen=state.mode==="remote"?"remote":"setup";state.rules=false;render();if(state.mode==="solo")void loadLeaderboard();if(state.mode==="remote"&&typeof refreshMatches==="function")void refreshMatches();}
         if(action==="rules"){state.rules=true;render();}
         if(action==="close-rules"){if(event.target===el||el.classList.contains("close")||el.classList.contains("primary")){state.rules=false;render();}}
         if(action==="ready"){if(state.mode==="crown"){state.screen="wheel";render();}else beginRound();}
@@ -797,7 +815,7 @@
         if(action==="crown-continue")crownContinue();
         if(action==="crown-rematch")crownRematch();
       }));
-      document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();clearCrownTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen="setup";render();if(state.mode==="solo")void loadLeaderboard();}));
+      document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{clearRoundTimer();clearCrownTimer();state.mode=el.dataset.mode;state.rounds=state.mode==="solo"?SOLO_ROUNDS:state.rounds;state.screen=state.mode==="remote"?"remote":"setup";render();if(state.mode==="solo")void loadLeaderboard();if(state.mode==="remote"&&typeof initRemote==="function")initRemote();}));
       document.querySelectorAll("[data-round]").forEach(el=>el.addEventListener("click",()=>{state.rounds=Number(el.dataset.round);render();}));
       document.querySelectorAll("[data-guess]").forEach(el=>el.addEventListener("click",()=>makeGuess(el.dataset.guess)));
       document.querySelectorAll("[data-guess-crown]").forEach(el=>el.addEventListener("click",()=>crownGuess(el.dataset.guessCrown)));
@@ -807,9 +825,12 @@
         one.addEventListener("input",()=>state.draftNames[0]=one.value);if(two)two.addEventListener("input",()=>state.draftNames[1]=two.value);
         form.addEventListener("submit",event=>{event.preventDefault();state.draftNames=[one.value,two?two.value:state.draftNames[1]];start();});
       }
+      if(typeof bindRemote==="function")bindRemote();
     }
     render();
     if(state.mode==="solo")void loadLeaderboard();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="remote.js"></script>
 </body>
 </html>
